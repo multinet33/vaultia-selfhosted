@@ -53,7 +53,9 @@ jobs:
           docker compose logs vaultia | grep '\[vaultia\]'
 
       - name: Vaultia Vision READY (inférence réelle)
-        run: docker compose exec -T vaultia vaultia vision-status | tee vision.txt && grep -qx "Vaultia Vision: READY" vision.txt
+        run: |
+          docker compose exec -T vaultia vaultia vision-status | tee vision.txt
+          grep -qx "Vaultia Vision: READY" vision.txt
 
       - name: Traitements locaux (HEIC, miniatures, code-barres, PDF, OCR)
         run: docker compose run --rm --no-deps -T vaultia runtime-smoke
