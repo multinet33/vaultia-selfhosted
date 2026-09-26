@@ -290,3 +290,83 @@ et exercée par `runtime-smoke`, les migrations, l'inscription (Argon2) et l'inf
 ## 16. Points bloquants non résolus
 
 Aucun.
+
+## 17. Clôture (LOT 6)
+
+### 17.1 Dépôts
+
+| Contrôle | `Vaultia` (source) | `vaultia-selfhosted` |
+| --- | --- | --- |
+| `main` = `origin/main` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | ce commit de clôture (voir `git log`) |
+| Arbre de travail | fichiers suivis propres ; un dossier **non suivi** `vaultia-reddit/` (visuels déposés par l'utilisateur, hors de ce travail, jamais commité) | propre |
+| Version / tags | `package.json` : `0.1.0` ; aucun tag Git, local ni distant | — |
+| `CLAUDE.md` | ignoré (`.gitignore`), non suivi | absent |
+| Secrets, clés, `.env` | aucun fichier suivi ; recherche de clés privées et de jetons GitHub : aucune | aucun ; `.env.example` n'a que des valeurs vides à remplir |
+| Modèles | aucun `.onnx` suivi | aucun |
+| Duplication de source | — | aucun `.ts`, Prisma, migration ni `package.json` : `compose.yaml`, `.env.example`, deux scripts d'exploitation, documentation, licences, un workflow de test |
+| Image référencée | — | `ghcr.io/multinet33/vaultia:0.1.0-rc.1@sha256:61b4d594…` |
+
+Commits de ce travail — source : `72b5376` (image de distribution, provisionnement, CI, GHCR),
+`7226455` et `150c5a6` (environnement de la CI, sélecteur E2E exact). Distribution : `ef05d4f`
+(audit), `d03986b` (distribution), `dd8eb11` (rapport LOT 4), `a2d816e`, `f8a211b`, `572d004`
+(workflow de smoke), `0a3dbf9` (architectures), puis ce commit.
+
+### 17.2 Sécurité de la configuration par défaut
+
+| Contrôle | Résultat |
+| --- | --- |
+| PostgreSQL publié sur l'hôte | **non** (aucun port) |
+| Socket Docker monté | **non** |
+| Service de débogage interne | aucun (deux services : `postgres`, `vaultia`) |
+| Volumes `models` et `media` exposés | **non** : volumes nommés, sans port ni partage ; fichiers servis seulement via l'application (URL signées) |
+| Vaultia publié | `127.0.0.1:3000` seulement ; `0.0.0.0` déconseillé explicitement |
+| Conteneurs privilégiés / capacités ajoutées | aucun |
+| Mode | production (`NODE_ENV=production`, `next start`), utilisateur `node` (uid 1000) |
+| Secrets | jamais dans l'image ni le dépôt ; génération documentée (`openssl rand -hex 24`, `openssl rand -base64 32`) ; démarrage refusé tant qu'ils sont vides |
+| Inscription | `first-user` par défaut (vérifié : 200 puis 403 `SIGN_UP_CLOSED`) ; changement délibéré documenté |
+| Proxy de confiance | `TRUSTED_PROXIES` vide par défaut, jamais `0.0.0.0/0`, documenté (`docs/reverse-proxy.md`) |
+| Persistance des envois | volume `media` (vérifié : restart, down/up, sauvegarde, restauration) |
+| Image | pas de `.env`, `storage`, `tests`, `e2e`, `.git`, modèle ; historique des couches sans secret ; télémétrie Next.js, Prisma et ONNX Runtime désactivée |
+| Fournisseur externe | aucun installé par défaut (`open-facts` exclu) |
+
+### 17.3 Tableau des portes
+
+| Porte | Verdict | Preuve |
+| --- | --- | --- |
+| Séparation des dépôts | PASS | § 17.1 |
+| Candidat GHCR | PASS | § 1, § 14.1 (public, anonyme, immuable, sans `latest`) |
+| Image AMD64 | PASS | § 14.2, § 14.3 (RÉEL) |
+| Image ARM64 | PASS | § 3 à § 13 et § 14.2 (exécution native en VM) |
+| Exécution ARM64 sur hôte réel | PENDING ORACLE | § 14.3 |
+| Installation propre | PASS | § 3, § 14.2 |
+| PostgreSQL | PASS | § 3, § 10, § 11 |
+| Stockage persistant | PASS | § 10, § 11 |
+| Provisionnement complet de la Vision | PASS | § 3, § 7, § 14.2 |
+| Vision FR | PASS | § 8 |
+| Vision EN | PASS | § 8 |
+| Vision locale / hors ligne | PASS | § 9 |
+| Persistance au redémarrage | PASS | § 10 (restart, down/up) |
+| Redémarrage réel de l'hôte | PENDING ORACLE | § 10, § 14.3 |
+| Persistance des modèles | PASS | § 10, § 13, § 14.2 |
+| Sauvegarde | PASS | § 11, § 14.2 |
+| Vérification du stockage | PASS | § 11, § 12 |
+| Mise à jour | PASS | § 13 (remplacement d'image à schéma inchangé ; limite documentée) |
+| Sécurité par défaut | PASS | § 17.2 |
+| Documentation | PASS | `README.md`, `docs/` |
+| Propreté Git | PASS | § 17.1 |
+
+### 17.4 Verdict
+
+Un tiers peut cloner **seulement** `vaultia-selfhosted`, lancer Docker Compose, tirer Vaultia
+de GHCR sans compte et obtenir une installation qui fonctionne. PostgreSQL et les fichiers
+persistent. Toute la vision locale est provisionnée, et chaque capacité locale est testée sur
+l'architecture disponible, en FR, en EN et hors ligne. Les modèles survivent au redémarrage, la
+sauvegarde fonctionne et la distribution est documentée. Les images amd64 et arm64 existent. La
+validation d'exécution sur un hôte Linux ARM64 réel, redémarrage compris, est explicitement
+**PENDING ORACLE** : elle n'est pas revendiquée.
+
+Prochaine étape, distincte : **validation réelle Oracle Linux ARM64**, avec exactement cette
+image publiée et ce dépôt public, par l'installation Compose documentée, sans build propre à
+Oracle.
+
+SELF-HOSTED DISTRIBUTION CANDIDATE: PASS
