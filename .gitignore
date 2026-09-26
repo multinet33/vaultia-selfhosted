@@ -16,3 +16,8 @@ models/
 .DS_Store
 Thumbs.db
 CLAUDE.md
+
+# Personnalisations locales (reverse proxy, surcouches) : propres à chaque installation
+compose.override.yaml
+Caddyfile
+*.crt

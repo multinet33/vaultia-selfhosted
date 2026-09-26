@@ -1,0 +1,82 @@
+# Vaultia auto-hébergé — PRÉ-VERSION (bêta, avant 1.0).
+#
+#     cp .env.example .env        # puis renseigner les valeurs OBLIGATOIRES
+#     docker compose up -d
+#
+# Deux services : PostgreSQL et Vaultia (image publiée sur GHCR, jamais construite ici).
+# Trois volumes persistants : base, fichiers, modèles de la vision locale (docs/storage.md).
+# PostgreSQL n'est joignable que depuis le réseau interne ; Vaultia est publié sur la boucle
+# locale de l'hôte par défaut (accès depuis le réseau : reverse proxy HTTPS, docs/reverse-proxy.md).
+name: vaultia
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vaultia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env (voir .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-vaultia}
+      # Encodage UTF-8 et tri neutre, quel que soit le système hôte.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+    volumes:
+      # PostgreSQL 18 : le volume se monte sur /var/lib/postgresql (sous-dossier par version majeure).
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - vaultia
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 60s
+
+  vaultia:
+    # Image candidate épinglée par son empreinte (digest) : l'image lancée est exactement celle du
+    # code source indiqué dans docs/update.md, même si le tag était déplacé. Une mise à jour est un
+    # changement de cette ligne (git pull de ce dépôt), jamais un « latest » implicite.
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.1@sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vaultia}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-vaultia}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET manquant dans .env (voir .env.example)}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL manquant dans .env (voir .env.example)}
+      VAULTIA_SIGNUP_POLICY: ${VAULTIA_SIGNUP_POLICY:-first-user}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      HSTS_MAX_AGE: ${HSTS_MAX_AGE:-}
+      NOTIFICATIONS_CRON_SECRET: ${NOTIFICATIONS_CRON_SECRET:-}
+      MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-}
+      # Bêta : vision locale complète (codes-barres, texte, image, documents). Aucun moteur externe.
+      INTELLIGENCE_PROVIDERS: ${INTELLIGENCE_PROVIDERS:-zxing-barcode,tesseract-ocr,siglip2-vision,document-rules}
+      INTELLIGENCE_MODELS_PROVISION: ${INTELLIGENCE_MODELS_PROVISION:-auto}
+      INTELLIGENCE_CONTACT: ${INTELLIGENCE_CONTACT:-}
+      WEBHOOK_ALLOW_PRIVATE_NETWORKS: ${WEBHOOK_ALLOW_PRIVATE_NETWORKS:-}
+      WEBHOOK_SECRET_KEY: ${WEBHOOK_SECRET_KEY:-}
+    volumes:
+      - media:/var/lib/vaultia/media
+      - models:/var/lib/vaultia/models
+    ports:
+      # Boucle locale par défaut : l'accès depuis le réseau passe par un reverse proxy HTTPS.
+      - "${VAULTIA_BIND_ADDRESS:-127.0.0.1}:${VAULTIA_PORT:-3000}:3000"
+    networks:
+      - vaultia
+    # Laisse aux requêtes en cours le temps de se terminer (SIGTERM, puis SIGKILL).
+    stop_grace_period: 30s
+
+volumes:
+  postgres-data:
+  media:
+  models:
+
+networks:
+  vaultia:
+    ipam:
+      config:
+        # Sous-réseau fixe : l'adresse d'un proxy dans ce réseau est connue (TRUSTED_PROXIES).
+        # À changer seulement s'il entre en conflit avec un réseau existant.
+        - subnet: ${VAULTIA_SUBNET:-172.30.83.0/24}
