@@ -3,8 +3,8 @@
 **[English](#english) · [Français](#français)**
 
 > **PRE-RELEASE (beta, before 1.0) / PRÉ-VERSION (bêta, avant 1.0).**
-> This is a test *candidate* (`0.1.0-rc`), not a stable release. Keep backups and report issues.
-> Ceci est un *candidat* de test (`0.1.0-rc`), pas une version stable. Faites des sauvegardes et
+> This is a test *candidate* (`0.1.0-rc.2`), not a stable release. Keep backups and report issues.
+> Ceci est un *candidat* de test (`0.1.0-rc.2`), pas une version stable. Faites des sauvegardes et
 > signalez les problèmes.
 
 - [Installation tutorial (English)](#installation-tutorial-english)
@@ -81,9 +81,22 @@ default).
 
 **7. Access from other devices (optional)**
 
-Outside `localhost`, Vaultia requires **HTTPS**. Put it behind your own reverse proxy (Caddy,
-nginx, Traefik, Nginx Proxy Manager, Cloudflare Tunnel…), then set `BETTER_AUTH_URL` to the
-`https://` address: see [docs/reverse-proxy.md](docs/reverse-proxy.md).
+Two options:
+
+- **HTTPS (recommended, all features)**: put Vaultia behind your own reverse proxy (Caddy, nginx,
+  Traefik, Nginx Proxy Manager, Cloudflare Tunnel…) and set `BETTER_AUTH_URL` to the `https://`
+  address: see [docs/reverse-proxy.md](docs/reverse-proxy.md).
+- **Plain HTTP on your local network only**: use the server's private IPv4 address (10.x,
+  172.16–31.x, 192.168.x). For example, if your server is `192.168.1.240` (an example, use yours):
+
+      BETTER_AUTH_URL=http://192.168.1.240:6000
+      VAULTIA_BIND_ADDRESS=192.168.1.240
+      VAULTIA_PORT=6000
+
+  Nothing is encrypted, and browser features that need a secure context are unavailable, notably
+  **offline mode** and the **barcode scanner camera**. Never expose this port to the Internet.
+  Any other `http://` address (hostname, public IP) is refused: HTTPS is required there.
+  Details, including Portainer: [docs/configuration.md](docs/configuration.md#http-sur-le-réseau-local).
 
 **Everyday commands**
 
@@ -164,9 +177,23 @@ Pour utiliser la vision locale dans un Espace : *Réglages › Vaultia Vision*, 
 
 **7. Accès depuis d'autres appareils (facultatif)**
 
-Hors de `localhost`, Vaultia exige **HTTPS**. Placez-le derrière votre reverse proxy (Caddy, nginx,
-Traefik, Nginx Proxy Manager, Cloudflare Tunnel…), puis mettez l'adresse `https://` dans
-`BETTER_AUTH_URL` : voir [docs/reverse-proxy.md](docs/reverse-proxy.md).
+Deux possibilités :
+
+- **HTTPS (recommandé, toutes les fonctions)** : placez Vaultia derrière votre reverse proxy
+  (Caddy, nginx, Traefik, Nginx Proxy Manager, Cloudflare Tunnel…) et mettez l'adresse `https://`
+  dans `BETTER_AUTH_URL` : voir [docs/reverse-proxy.md](docs/reverse-proxy.md).
+- **HTTP simple, sur le réseau local seulement** : l'adresse IPv4 privée du serveur (10.x,
+  172.16-31.x, 192.168.x). Par exemple, si votre serveur est `192.168.1.240` (un exemple, mettez
+  la vôtre) :
+
+      BETTER_AUTH_URL=http://192.168.1.240:6000
+      VAULTIA_BIND_ADDRESS=192.168.1.240
+      VAULTIA_PORT=6000
+
+  Rien n'est chiffré, et les fonctions du navigateur qui exigent un contexte sécurisé sont
+  indisponibles, notamment le **mode hors ligne** et la **caméra du scanner**. N'exposez jamais ce
+  port à Internet. Toute autre adresse en `http://` (nom d'hôte, IP publique) est refusée : HTTPS y
+  est obligatoire. Détail, Portainer compris : [docs/configuration.md](docs/configuration.md#http-sur-le-réseau-local).
 
 **Commandes courantes**
 

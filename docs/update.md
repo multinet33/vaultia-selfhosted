@@ -1,5 +1,34 @@
 # Mise à jour
 
+## Versions distribuées
+
+| Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
+| --- | --- | --- | --- |
+| **`0.1.0-rc.2`** (actuel) | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
+| `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.1 à 0.1.0-rc.2
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml`).
+3. `docker compose pull && docker compose up -d`.
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"vision":"ready"`, `docker compose exec vaultia vaultia vision-status` → `Vaultia Vision: READY`.
+
+**Ne jamais lancer `docker compose down -v`** : `-v` efface les volumes. Une mise à jour
+**conserve** les trois volumes, `postgres-data` (base), `media` (fichiers) et `models` (modèle de
+vision, non retéléchargé). Aucune variable n'est à ajouter : le HTTP sur le réseau local est
+facultatif.
+
+**Validé réellement** avant publication sur une installation `0.1.0-rc.1` existante et
+représentative : 3 comptes, 3 Espaces complets et un membre invité, objets, véhicules, documents
+du coffre Espace et PERSONAL, 30 médias, valorisations. Sauvegarde ALL faite avant la mise à jour
+(`storage_verify=ok`), 54 migrations et aucune en attente. Après la mise à jour, puis après
+`restart` et `down`/`up` : les 82 tables sont identiques, fichiers intacts (SHA-256), modèle
+conservé, Vision READY, droits Espace et PERSONAL inchangés (un membre ne voit pas les documents
+personnels d'un autre, un tiers n'entre pas dans l'Espace).
+
 ## Principe
 
 L'image de Vaultia est **épinglée** dans `compose.yaml` par son tag candidat **et** son empreinte

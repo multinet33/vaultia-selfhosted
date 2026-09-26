@@ -11,7 +11,7 @@ Voir [installation.md § 2](installation.md#2-configurer).
 
 | Journal | Cause | Action |
 | --- | --- | --- |
-| `[config] configuration invalide : …` | valeur refusée (secret trop court, URL en http hors localhost, `TRUSTED_PROXIES` invalide…) | corriger `.env`, `docker compose up -d` |
+| `[config] configuration invalide : …` | valeur refusée (secret trop court, URL en http vers un nom d'hôte ou une adresse publique, `TRUSTED_PROXIES` invalide…) | corriger `.env`, `docker compose up -d` |
 | `ÉCHEC des migrations` | migration de base en échec | **ne rien forcer** ; [update.md § En cas d'échec](update.md#en-cas-déchec--limites-du-retour-arrière) |
 | `password authentication failed` | `POSTGRES_PASSWORD` changé après l'installation | remettre l'ancien mot de passe (la base garde celui de sa création) |
 
@@ -38,10 +38,16 @@ Dans l'application, l'analyse d'une photo est proposée seulement si l'Espace l'
 
 ## Impossible de se connecter depuis un autre appareil
 
-- Sans reverse proxy, Vaultia n'est publié que sur `127.0.0.1` de l'hôte : [reverse-proxy.md](reverse-proxy.md).
+- Par défaut, Vaultia n'est publié que sur `127.0.0.1` de l'hôte : reverse proxy HTTPS
+  ([reverse-proxy.md](reverse-proxy.md)), ou HTTP sur l'adresse privée du serveur
+  (`VAULTIA_BIND_ADDRESS`, [configuration.md](configuration.md#http-sur-le-réseau-local)).
 - `BETTER_AUTH_URL` doit être **exactement** l'adresse du navigateur (schéma, nom, port) ; sinon
   les formulaires sont refusés (contrôle d'origine).
-- HTTPS est obligatoire hors `localhost`.
+- HTTPS est obligatoire, sauf pour `localhost` et une adresse IPv4 privée (10.x, 172.16-31.x,
+  192.168.x). Un nom d'hôte en `http://` (`http://vaultia.lan`) est refusé.
+- `cannot assign requested address` : `VAULTIA_BIND_ADDRESS` n'est pas une adresse de ce serveur.
+- En HTTP sur le réseau local, le mode hors ligne et la caméra du scanner sont indisponibles (pas
+  de contexte sécurisé) : c'est attendu, passer en HTTPS pour les obtenir.
 
 ## « Inscription fermée »
 

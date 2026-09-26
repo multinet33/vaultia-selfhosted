@@ -6,7 +6,8 @@
 # Deux services : PostgreSQL et Vaultia (image publiée sur GHCR, jamais construite ici).
 # Trois volumes persistants : base, fichiers, modèles de la vision locale (docs/storage.md).
 # PostgreSQL n'est joignable que depuis le réseau interne ; Vaultia est publié sur la boucle
-# locale de l'hôte par défaut (accès depuis le réseau : reverse proxy HTTPS, docs/reverse-proxy.md).
+# locale de l'hôte par défaut. Accès depuis le réseau : reverse proxy HTTPS (docs/reverse-proxy.md),
+# ou HTTP sur l'adresse privée du serveur, réseau local seulement (docs/configuration.md).
 name: vaultia
 
 services:
@@ -36,7 +37,8 @@ services:
     # Image candidate épinglée par son empreinte (digest) : l'image lancée est exactement celle du
     # code source indiqué dans docs/update.md, même si le tag était déplacé. Une mise à jour est un
     # changement de cette ligne (git pull de ce dépôt), jamais un « latest » implicite.
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.1@sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb}
+    # 0.1.0-rc.2 : source Vaultia 5ca5ffc101fd89204ef533d3b9bf807b64d41a2a (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.2@sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -61,7 +63,8 @@ services:
       - media:/var/lib/vaultia/media
       - models:/var/lib/vaultia/models
     ports:
-      # Boucle locale par défaut : l'accès depuis le réseau passe par un reverse proxy HTTPS.
+      # Boucle locale par défaut. Accès depuis le réseau : reverse proxy HTTPS, ou l'adresse IPv4
+      # privée du serveur en HTTP (réseau local seulement, docs/configuration.md).
       - "${VAULTIA_BIND_ADDRESS:-127.0.0.1}:${VAULTIA_PORT:-3000}:3000"
     networks:
       - vaultia

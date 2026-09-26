@@ -18,7 +18,7 @@ Dans `.env`, section **OBLIGATOIRE** :
 | --- | --- |
 | `POSTGRES_PASSWORD` | sortie de `openssl rand -hex 24` |
 | `BETTER_AUTH_SECRET` | sortie de `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | `http://localhost:3000` pour un essai sur la machine elle-même ; `https://<nom>` derrière un reverse proxy |
+| `BETTER_AUTH_URL` | `http://localhost:3000` pour un essai sur la machine elle-même ; `http://<IPv4 privée>:<port>` sur le réseau local ; `https://<nom>` derrière un reverse proxy |
 
 Tant qu'une de ces valeurs est vide, `docker compose up` refuse de démarrer et nomme la variable
 manquante. Les autres réglages ont des valeurs par défaut sûres ([configuration.md](configuration.md)).
@@ -60,8 +60,12 @@ par défaut, décision de l'Espace).
 
 ## 6. Accès depuis le réseau
 
-Voir [reverse-proxy.md](reverse-proxy.md). Sans reverse proxy, Vaultia reste accessible seulement
-depuis la machine hôte (`127.0.0.1`).
+Par défaut, Vaultia n'est accessible que depuis la machine hôte (`127.0.0.1`). Deux possibilités :
+
+- **HTTPS** derrière votre reverse proxy (recommandé, toutes les fonctions) : [reverse-proxy.md](reverse-proxy.md) ;
+- **HTTP sur l'adresse privée du serveur**, réseau local uniquement, sans chiffrement, sans mode
+  hors ligne ni caméra du scanner : [configuration.md § HTTP sur le réseau local](configuration.md#http-sur-le-réseau-local)
+  (exemple Portainer compris).
 
 ## Arrêter, redémarrer
 

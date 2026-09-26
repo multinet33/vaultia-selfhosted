@@ -1,9 +1,11 @@
 # Reverse proxy et HTTPS
 
-Vaultia ne termine pas TLS lui-même. Hors de la machine hôte (`http://localhost`), il **exige
-HTTPS** : le mode hors ligne, le scanner de codes-barres et les cookies sécurisés en dépendent.
-Pour l'ouvrir au réseau local ou à Internet, placez-le derrière **votre** reverse proxy. Aucun
-proxy n'est imposé ni embarqué par cette distribution.
+Vaultia ne termine pas TLS lui-même. Il **exige HTTPS** partout, sauf sur la machine hôte
+(`http://localhost`) et sur une adresse IPv4 privée du réseau local
+([configuration.md § HTTP sur le réseau local](configuration.md#http-sur-le-réseau-local)). HTTPS
+reste recommandé : le mode hors ligne, la caméra du scanner et les cookies sécurisés en dépendent.
+Pour l'ouvrir au réseau local avec toutes ses fonctions, ou à Internet, placez-le derrière
+**votre** reverse proxy. Aucun proxy n'est imposé ni embarqué par cette distribution.
 
 | Responsabilité | Qui |
 | --- | --- |
