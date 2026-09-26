@@ -10,12 +10,12 @@
 - [Installation tutorial (English)](#installation-tutorial-english)
 - [Tutoriel d'installation (français)](#tutoriel-dinstallation-français)
 
-**Complete step-by-step guides / Guides pas à pas complets** (French / français):
+**Complete step-by-step guides / Guides pas à pas complets**:
 
-| Guide | For / Pour |
-| --- | --- |
-| [Docker Compose — docs/docker.md](docs/docker.md) | command line / ligne de commande |
-| [Portainer — docs/portainer.md](docs/portainer.md) | Portainer stack from this repository / pile Portainer depuis ce dépôt |
+| Guide | English | Français |
+| --- | --- | --- |
+| Docker Compose (command line / ligne de commande) | [docs/docker_EN.md](docs/docker_EN.md) | [docs/docker.md](docs/docker.md) |
+| Portainer (stack from this repository / pile depuis ce dépôt) | [docs/portainer_EN.md](docs/portainer_EN.md) | [docs/portainer.md](docs/portainer.md) |
 
 ---
 
@@ -284,7 +284,8 @@ limits) and [docs/backup-restore.md](docs/backup-restore.md).
 
 ### Documentation (French)
 
-Step-by-step installation: [Docker Compose](docs/docker.md) · [Portainer](docs/portainer.md) ·
+Step-by-step installation, in English: [Docker Compose](docs/docker_EN.md) ·
+[Portainer](docs/portainer_EN.md). In French: [Docker Compose](docs/docker.md) · [Portainer](docs/portainer.md) ·
 [installation](docs/installation.md) · [configuration](docs/configuration.md) ·
 [storage](docs/storage.md) · [vision](docs/vision.md) · [reverse proxy](docs/reverse-proxy.md) ·
 [update](docs/update.md) · [backup & restore](docs/backup-restore.md) ·
