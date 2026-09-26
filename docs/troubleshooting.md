@@ -46,6 +46,9 @@ Dans l'application, l'analyse d'une photo est proposée seulement si l'Espace l'
 - HTTPS est obligatoire, sauf pour `localhost` et une adresse IPv4 privée (10.x, 172.16-31.x,
   192.168.x). Un nom d'hôte en `http://` (`http://vaultia.lan`) est refusé.
 - `cannot assign requested address` : `VAULTIA_BIND_ADDRESS` n'est pas une adresse de ce serveur.
+- `ERR_UNSAFE_PORT` dans Chrome ou Edge : le port choisi fait partie de ceux que les navigateurs
+  refusent (6000 par exemple). Choisissez un autre port (les guides utilisent 6080) et reportez-le
+  dans `VAULTIA_PORT` **et** `BETTER_AUTH_URL`.
 - En HTTP sur le réseau local, le mode hors ligne et la caméra du scanner sont indisponibles (pas
   de contexte sécurisé) : c'est attendu, passer en HTTPS pour les obtenir.
 

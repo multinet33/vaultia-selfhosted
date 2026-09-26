@@ -50,7 +50,7 @@ Depuis `0.1.0-rc.2`, `BETTER_AUTH_URL` peut être en `http://` pour :
 | Destination | Exemple | Usage |
 | --- | --- | --- |
 | la machine elle-même | `http://localhost:3000`, `http://127.0.0.1:3000` | essai, accès depuis le serveur |
-| une adresse IPv4 **privée** (RFC 1918) : `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` | `http://192.168.1.240:6000` | **réseau local uniquement** |
+| une adresse IPv4 **privée** (RFC 1918) : `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` | `http://192.168.1.240:6080` | **réseau local uniquement** |
 
 **Partout ailleurs, HTTPS est obligatoire** : un nom d'hôte (`http://vaultia.lan`), une adresse
 publique ou une autre plage arrêtent Vaultia au démarrage (`configuration invalide`). Aucune option
@@ -68,28 +68,27 @@ En HTTP sur le réseau local :
 
 **HTTPS reste recommandé** pour bénéficier de toutes les fonctions ([reverse-proxy.md](reverse-proxy.md)).
 
-### Exemple : réseau local, Portainer
+### Exemple : réseau local
 
 L'adresse `192.168.1.240` n'est qu'un **exemple** : utilisez l'adresse IPv4 privée de **votre**
 serveur (`ip -4 addr` sous Linux). Vaultia n'a aucune adresse ni aucun port par défaut de ce genre.
 
-    BETTER_AUTH_URL=http://192.168.1.240:6000
+    BETTER_AUTH_URL=http://192.168.1.240:6080
     VAULTIA_BIND_ADDRESS=192.168.1.240
-    VAULTIA_PORT=6000
+    VAULTIA_PORT=6080
 
 plus les deux secrets obligatoires (`POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET`). Vaultia s'ouvre
-alors sur `http://192.168.1.240:6000` depuis les appareils du réseau local.
-
-- **Docker Compose** : ces lignes dans `.env`, puis `docker compose up -d`.
-- **Portainer** (*Stacks › Add stack*) : dépôt Git `https://github.com/multinet33/vaultia-selfhosted`,
-  fichier `compose.yaml`, et ces variables dans *Environment variables* (un `.env` n'est pas lu
-  depuis le dépôt). Le nom de la pile préfixe les volumes (`<pile>_postgres-data`, `<pile>_media`,
-  `<pile>_models`) : ne le changez pas après l'installation. Les commandes de ce dépôt
-  (`scripts/backup.sh`, `vaultia vision-status`) se lancent depuis un terminal sur le serveur.
-  Cette utilisation par Portainer n'a pas été testée pendant la bêta.
+alors sur `http://192.168.1.240:6080` depuis les appareils du réseau local. Les trois valeurs
+doivent concorder : même adresse, même port.
 
 `VAULTIA_BIND_ADDRESS` doit être une adresse de la machine qui exécute Docker ; sinon le conteneur
 ne démarre pas (`cannot assign requested address`).
+
+**Port** : évitez 6000 et les autres ports que les navigateurs refusent (Chrome, Edge et les
+navigateurs Chromium affichent `ERR_UNSAFE_PORT`) ; les guides utilisent 6080.
+
+Pas à pas complets : [docker.md](docker.md) (ligne de commande) et [portainer.md](portainer.md)
+(pile Portainer, variables dans l'interface, sauvegarde depuis le serveur).
 
 ## Vision et analyses
 

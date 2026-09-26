@@ -1,5 +1,8 @@
 # Installation
 
+Installation rapide. Pas à pas complets, variables comprises : [docker.md](docker.md) (ligne de
+commande) et [portainer.md](portainer.md) (Portainer).
+
 ## 1. Récupérer la distribution
 
     git clone https://github.com/multinet33/vaultia-selfhosted.git
@@ -64,8 +67,8 @@ Par défaut, Vaultia n'est accessible que depuis la machine hôte (`127.0.0.1`).
 
 - **HTTPS** derrière votre reverse proxy (recommandé, toutes les fonctions) : [reverse-proxy.md](reverse-proxy.md) ;
 - **HTTP sur l'adresse privée du serveur**, réseau local uniquement, sans chiffrement, sans mode
-  hors ligne ni caméra du scanner : [configuration.md § HTTP sur le réseau local](configuration.md#http-sur-le-réseau-local)
-  (exemple Portainer compris).
+  hors ligne ni caméra du scanner : [configuration.md § HTTP sur le réseau local](configuration.md#http-sur-le-réseau-local),
+  et les guides [docker.md](docker.md) et [portainer.md](portainer.md) (exemple complet en port 6080).
 
 ## Arrêter, redémarrer
 

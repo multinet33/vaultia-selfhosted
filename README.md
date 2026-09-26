@@ -10,6 +10,13 @@
 - [Installation tutorial (English)](#installation-tutorial-english)
 - [Tutoriel d'installation (français)](#tutoriel-dinstallation-français)
 
+**Complete step-by-step guides / Guides pas à pas complets** (French / français):
+
+| Guide | For / Pour |
+| --- | --- |
+| [Docker Compose — docs/docker.md](docs/docker.md) | command line / ligne de commande |
+| [Portainer — docs/portainer.md](docs/portainer.md) | Portainer stack from this repository / pile Portainer depuis ce dépôt |
+
 ---
 
 ## Installation tutorial (English)
@@ -89,12 +96,13 @@ Two options:
 - **Plain HTTP on your local network only**: use the server's private IPv4 address (10.x,
   172.16–31.x, 192.168.x). For example, if your server is `192.168.1.240` (an example, use yours):
 
-      BETTER_AUTH_URL=http://192.168.1.240:6000
+      BETTER_AUTH_URL=http://192.168.1.240:6080
       VAULTIA_BIND_ADDRESS=192.168.1.240
-      VAULTIA_PORT=6000
+      VAULTIA_PORT=6080
 
   Nothing is encrypted, and browser features that need a secure context are unavailable, notably
   **offline mode** and the **barcode scanner camera**. Never expose this port to the Internet.
+  Avoid port 6000: Chromium-based browsers refuse it (`ERR_UNSAFE_PORT`).
   Any other `http://` address (hostname, public IP) is refused: HTTPS is required there.
   Details, including Portainer: [docs/configuration.md](docs/configuration.md#http-sur-le-réseau-local).
 
@@ -186,13 +194,13 @@ Deux possibilités :
   172.16-31.x, 192.168.x). Par exemple, si votre serveur est `192.168.1.240` (un exemple, mettez
   la vôtre) :
 
-      BETTER_AUTH_URL=http://192.168.1.240:6000
+      BETTER_AUTH_URL=http://192.168.1.240:6080
       VAULTIA_BIND_ADDRESS=192.168.1.240
-      VAULTIA_PORT=6000
+      VAULTIA_PORT=6080
 
   Rien n'est chiffré, et les fonctions du navigateur qui exigent un contexte sécurisé sont
   indisponibles, notamment le **mode hors ligne** et la **caméra du scanner**. N'exposez jamais ce
-  port à Internet. Toute autre adresse en `http://` (nom d'hôte, IP publique) est refusée : HTTPS y
+  port à Internet. Évitez le port 6000 : les navigateurs Chromium le refusent (`ERR_UNSAFE_PORT`). Toute autre adresse en `http://` (nom d'hôte, IP publique) est refusée : HTTPS y
   est obligatoire. Détail, Portainer compris : [docs/configuration.md](docs/configuration.md#http-sur-le-réseau-local).
 
 **Commandes courantes**
@@ -276,6 +284,7 @@ limits) and [docs/backup-restore.md](docs/backup-restore.md).
 
 ### Documentation (French)
 
+Step-by-step installation: [Docker Compose](docs/docker.md) · [Portainer](docs/portainer.md) ·
 [installation](docs/installation.md) · [configuration](docs/configuration.md) ·
 [storage](docs/storage.md) · [vision](docs/vision.md) · [reverse proxy](docs/reverse-proxy.md) ·
 [update](docs/update.md) · [backup & restore](docs/backup-restore.md) ·
@@ -364,7 +373,9 @@ Les migrations de base s'appliquent seules au démarrage. Voir [docs/update.md](
 
 | Document | Contenu |
 | --- | --- |
-| [installation.md](docs/installation.md) | installation pas à pas, premier compte, vérifications |
+| [docker.md](docs/docker.md) | **installation complète en ligne de commande** (Docker Compose), réseau local |
+| [portainer.md](docs/portainer.md) | **installation complète avec Portainer** (pile depuis ce dépôt), réseau local |
+| [installation.md](docs/installation.md) | installation rapide, premier compte, vérifications |
 | [configuration.md](docs/configuration.md) | toutes les variables de `.env`, comptes, santé |
 | [storage.md](docs/storage.md) | volumes : quoi, où, que se passe-t-il s'ils disparaissent |
 | [vision.md](docs/vision.md) | vision locale : modèle, installation, état, hors ligne |

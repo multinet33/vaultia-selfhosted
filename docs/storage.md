@@ -27,4 +27,6 @@ Ne copiez pas les dossiers de PostgreSQL à chaud : ce n'est pas une sauvegarde 
 | `docker volume rm vaultia_…`, `docker system prune --volumes` | **efface le volume visé** |
 
 Le nom de projet `vaultia` (ligne `name:` de `compose.yaml`) préfixe les volumes : ne le changez
-pas après l'installation, sinon Docker crée des volumes neufs et vides.
+pas après l'installation, sinon Docker crée des volumes neufs et vides. Avec Portainer, c'est le
+**nom de la pile** qui préfixe les volumes (`<pile>_postgres-data`, `<pile>_media`,
+`<pile>_models`) : même règle ([portainer.md](portainer.md)).
