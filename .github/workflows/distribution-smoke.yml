@@ -1,0 +1,95 @@
+# Smoke test de la distribution, sur de vrais Linux amd64 et arm64 (runners GitHub, machines
+# virtuelles, sans émulation) : installation propre en suivant le README, tirage anonyme de
+# l'image épinglée, santé, vision complète avec inférence réelle, traitements locaux, politique
+# d'inscription, redémarrage sans retéléchargement, sauvegarde vérifiée.
+name: Distribution smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [compose.yaml, .env.example, scripts/**, .github/workflows/distribution-smoke.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configuration (README — démarrage rapide)
+        run: |
+          cp .env.example .env
+          chmod 600 .env
+          sed -i -e "s#^POSTGRES_PASSWORD=\$#POSTGRES_PASSWORD=$(openssl rand -hex 24)#" \
+                 -e "s#^BETTER_AUTH_SECRET=\$#BETTER_AUTH_SECRET=$(openssl rand -base64 32)#" .env
+          echo "architecture de l'hôte : $(uname -m)"
+
+      - name: Installation (tirage anonyme de l'image épinglée)
+        run: |
+          docker logout ghcr.io || true
+          time docker compose pull
+          docker compose up -d
+          docker image inspect --format 'image {{.Architecture}} révision {{index .Config.Labels "org.opencontainers.image.revision"}}' "$(docker compose images -q vaultia)"
+
+      - name: Application saine puis Vision prête
+        run: |
+          for i in $(seq 1 300); do
+            health="$(curl -fsS http://127.0.0.1:3000/api/health || true)"
+            case "$health" in *'"vision":"ready"'*) echo "$health après ${i} s"; break ;; esac
+            sleep 1
+          done
+          echo "$health" | grep -q '"status":"ok"'
+          echo "$health" | grep -q '"vision":"ready"'
+          docker compose ps
+          docker compose ps --format '{{.Service}} {{.Health}}' | grep -qx 'vaultia healthy'
+          docker compose logs vaultia | grep '\[vaultia\]'
+
+      - name: Vaultia Vision READY (inférence réelle)
+        run: docker compose exec -T vaultia vaultia vision-status | tee vision.txt && grep -qx "Vaultia Vision: READY" vision.txt
+
+      - name: Traitements locaux (HEIC, miniatures, code-barres, PDF, OCR)
+        run: docker compose run --rm --no-deps -T vaultia runtime-smoke
+
+      - name: Premier compte libre, inscription ensuite fermée
+        run: |
+          signup() {
+            curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:3000/api/auth/sign-up/account \
+              -H 'content-type: application/json' -H 'origin: http://localhost:3000' \
+              -d "{\"email\":\"$1\",\"firstName\":\"Smoke\",\"lastName\":\"Test\",\"password\":\"Smoke-Motdepasse-2026!\",\"confirmPassword\":\"Smoke-Motdepasse-2026!\"}"
+          }
+          test "$(signup admin@smoke.test)" = 200
+          test "$(signup intrus@smoke.test)" = 403
+
+      - name: Redémarrage sans retéléchargement du modèle
+        run: |
+          before="$(docker compose exec -T vaultia stat -c %Y /var/lib/vaultia/models/siglip2-base-patch16-224/onnx/vision_model_quantized.onnx)"
+          docker compose restart
+          for i in $(seq 1 120); do curl -fsS http://127.0.0.1:3000/api/health 2>/dev/null | grep -q '"vision":"ready"' && break; sleep 1; done
+          after="$(docker compose exec -T vaultia stat -c %Y /var/lib/vaultia/models/siglip2-base-patch16-224/onnx/vision_model_quantized.onnx)"
+          test "$before" = "$after"
+          test "$(docker compose exec -T postgres psql -U vaultia -d vaultia -tAc 'select count(*) from users')" = 1
+          docker compose exec -T vaultia vaultia vision-status | tail -1 | grep -qx "Vaultia Vision: READY"
+
+      - name: Sauvegarde vérifiée
+        run: |
+          ./scripts/backup.sh
+          cd backups/vaultia-*
+          cat MANIFEST
+          grep -qx 'storage_verify=ok' MANIFEST
+          sha256sum -c SHA256SUMS
+
+      - name: Ressources
+        if: always()
+        run: docker stats --no-stream
+
+      - name: Nettoyage
+        if: always()
+        run: docker compose down -v
