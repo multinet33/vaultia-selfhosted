@@ -1,0 +1,18 @@
+# Configuration de l'instance : contient des secrets, jamais versionnée.
+.env
+.env.*
+!.env.example
+
+# Sauvegardes et données locales
+backups/
+*.dump
+*.tar
+
+# Modèles téléchargés : artefacts d'exécution, jamais versionnés
+models/
+*.onnx
+
+# Fichiers de poste
+.DS_Store
+Thumbs.db
+CLAUDE.md
