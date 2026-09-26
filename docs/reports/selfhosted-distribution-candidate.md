@@ -24,7 +24,7 @@ version applicative `0.1.0`, aucun `latest`).
 | Architecture | Construction | Vérification |
 | --- | --- | --- |
 | `linux/amd64` | GitHub Actions (runner `ubuntu-24.04`, amd64 natif) | job `smoke-amd64` sur **vrai Linux amd64** (machine virtuelle GitHub, sans émulation) : `runtime-smoke` 8/8, provisionnement du modèle, `Vaultia Vision: READY` avec inférence réelle, second provisionnement sans téléchargement |
-| `linux/arm64` | GitHub Actions : build Next.js natif (amd64), dépendances d'exécution installées pour arm64 sous QEMU | ce rapport : validation complète sur Linux arm64 **en machine virtuelle Docker Desktop (Apple Silicon)** — exécution arm64 native, **pas** un hôte Linux arm64 physique ni un serveur |
+| `linux/arm64` | GitHub Actions : build Next.js natif (amd64), dépendances d'exécution installées pour arm64 sous QEMU | ce rapport : validation complète sur Linux arm64 **en machine virtuelle Docker Desktop (Apple Silicon)** et smoke sur runner GitHub arm64 — exécution arm64 native, **pas** un hôte Linux arm64 réel (§ 14) |
 
 
 ## 3. Installation propre
@@ -219,17 +219,74 @@ Limite : une mise à jour **avec** migrations entre deux candidats n'a pas encor
 par la distribution. Le mécanisme (`prisma migrate deploy` au démarrage) est celui validé en V1
 (48 → 49 migrations, rapport Step 18 du dépôt source).
 
-## 14. Limites connues
+## 14. Architectures (LOT 5)
+
+### 14.1 Manifeste multi-architecture
+
+Vérifié **anonymement** sur le registre (jeton anonyme, API OCI) :
+
+| Référence | Digest résolu |
+| --- | --- |
+| `0.1.0-rc.1` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` |
+| `sha-150c5a6678c6065c04e4adfd7d426e003ed11361` | idem |
+| `rc` | idem |
+| `latest` | **absent** (404) |
+
+L'index contient `linux/amd64` (`sha256:14030b48…66a5`), `linux/arm64` (`sha256:029521a1…b696`)
+et deux manifestes d'attestation (provenance, SBOM). Chaque runner a tiré la variante de son
+architecture (`docker image inspect` : `amd64` / `arm64`, révision `150c5a6…`).
+
+### 14.2 Smoke test de la distribution sur runners GitHub
+
+Workflow public `Distribution smoke` (`.github/workflows/distribution-smoke.yml`, run
+`36245970441`, distribution `572d004`) : README suivi sur une machine neuve, tirage **anonyme** de
+l'image épinglée, santé, Vision, traitements locaux, politique d'inscription, redémarrage,
+sauvegarde.
+
+| Contrôle | `ubuntu-24.04` | `ubuntu-24.04-arm` |
+| --- | --- | --- |
+| `uname -m` | `x86_64` | `aarch64` |
+| Tirage des images | 26,8 s | 27,7 s |
+| Image lancée | `amd64`, révision `150c5a6…` | `arm64`, révision `150c5a6…` |
+| `/api/health` `status: ok` + `vision: ready` | 5 s | 5 s |
+| Conteneur `healthy` | oui | oui |
+| `vision-status` (inférence réelle) | READY, 503 ms | READY, 423 ms |
+| `runtime-smoke` | 8/8 | 8/8 |
+| Premier compte / second sans invitation | 200 / 403 | 200 / 403 |
+| `restart` : modèle non retéléchargé, compte conservé, READY | oui | oui |
+| `scripts/backup.sh` : `storage_verify=ok`, SHA-256 | OK | OK |
+| RAM Vaultia en fin de test | 308 Mio | 270 Mio |
+
+Le premier passage (run `36245879324`) avait échoué sur arm64 à cause d'une assertion du
+workflow : l'état Docker `healthy` était exigé avant le premier contrôle de santé de l'image
+(intervalle 30 s), alors que la Vision était déjà prête. Corrigé dans le workflow (`572d004`),
+sans modification de l'image ni de la distribution.
+
+### 14.3 Classement
+
+| Architecture | Statut | Preuves |
+| --- | --- | --- |
+| `linux/amd64` | **RÉEL** (Linux x86_64, machine virtuelle GitHub, sans émulation) | smoke de la distribution (§ 14.2) ; job `smoke-amd64` de la publication ; CI source (build de production, unitaires, intégration, E2E capture/Intelligence) sur `ubuntu-24.04` |
+| `linux/amd64` | ÉMULÉ (QEMU, poste Apple Silicon) | LOT 2 : build de l'image, `runtime-smoke` 8/8, `vision-status` READY — complément, pas une preuve de l'exécution réelle |
+| `linux/arm64` | **EXÉCUTION NATIVE EN MACHINE VIRTUELLE** | validation complète des §§ 3 à 13 (VM Linux de Docker Desktop, Apple Silicon) ; smoke de la distribution sur `ubuntu-24.04-arm` (§ 14.2) |
+| `linux/arm64` | **PENDING ORACLE** : hôte Linux ARM64 réel, redémarrage de l'hôte | prochaine étape, avec cette image publiée et ce dépôt, sans build propre à Oracle |
+| Redémarrage réel d'un hôte | NOT TESTED | ni sur amd64 ni sur arm64 |
+
+Aucune incompatibilité connue sur l'une ou l'autre architecture : les binaires natifs (Prisma
+`schema-engine`, Argon2, sharp/libvips, ONNX Runtime, Tesseract) ont chacun leur variante chargée
+et exercée par `runtime-smoke`, les migrations, l'inscription (Argon2) et l'inférence SigLIP 2.
+
+## 15. Limites connues
 
 - Redémarrage réel de l'hôte : non testé (§ 10).
-- Validation d'exécution arm64 faite en VM Docker Desktop, pas sur un hôte Linux arm64 : réservée
-  à Oracle (§ 2).
+- Exécution arm64 validée en machines virtuelles (Docker Desktop, runner GitHub arm64), pas sur
+  un hôte Linux arm64 réel : réservée à Oracle (§ 14.3).
 - Reverse proxys : seul l'accès `http://localhost` est validé par la distribution ; l'exemple
   Caddy reprend la configuration validée par le dépôt source, les autres ne sont pas testés.
 - Les E2E qui décrivent `open-facts` supposent l'instance de développement (§ 8.2).
 - Mise à jour avec migrations entre candidats : non exercée (§ 13).
 - Pas de réinitialisation de mot de passe par e-mail (limite produit V1).
 
-## 15. Points bloquants non résolus
+## 16. Points bloquants non résolus
 
 Aucun.
