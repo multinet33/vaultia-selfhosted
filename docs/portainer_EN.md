@@ -135,7 +135,7 @@ Optional, **leave them out** for a standard installation:
 | --- | --- | --- |
 | `TRUSTED_PROXIES` | reverse proxy address(es), behind HTTPS ([reverse-proxy.md](reverse-proxy.md)) | empty |
 | `HSTS_MAX_AGE` | HSTS header, in seconds (HTTPS only) | empty (none) |
-| `VAULTIA_IMAGE` | image other than the pinned one (testing, or `…:rc` tracked by Watchtower: [update.md](update.md#suivi-automatique-des-candidats-watchtower-facultatif)) | pinned image from `compose.yaml` |
+| `VAULTIA_IMAGE` | image other than the pinned one (testing, or the `…:rc` / `…:stable` channel tracked by Watchtower: [update.md](update.md#mises-à-jour-automatiques-watchtower-facultatif)) | pinned image from `compose.yaml` |
 | `INTELLIGENCE_PROVIDERS` | installed analysis engines | full local Vision, no external service |
 | `INTELLIGENCE_MODELS_PROVISION` | automatic Vision model installation: `auto` or `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact sent to open product databases (only with `open-facts`) | empty |
@@ -280,10 +280,12 @@ The three volumes are kept. **Never** delete the volumes to "start clean": the e
 [update.md](update.md).
 
 **Automatic updates (optional)**: with the stack variable
-`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` and a Watchtower in another stack, Vaultia follows
-every new release candidate on its own, database migrations included, with no backup beforehand.
-Less conservative than the procedure above: read
-[update.md § Suivi automatique](update.md#suivi-automatique-des-candidats-watchtower-facultatif)
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` (release candidates) or, once published,
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:stable` (stable releases), without editing
+`compose.yaml`, and a Watchtower in another stack, Vaultia follows the chosen channel on its own,
+database migrations included, with no backup beforehand. The two channels are independent. Less
+conservative than the procedure above: read
+[update.md § Mises à jour automatiques](update.md#mises-à-jour-automatiques-watchtower-facultatif)
 first (French).
 
 ## 12. Backup (Backup ALL)

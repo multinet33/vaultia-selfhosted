@@ -135,7 +135,7 @@ Facultatives (laisser vides) :
 | --- | --- | --- |
 | `TRUSTED_PROXIES` | adresse(s) du reverse proxy, derrière HTTPS ([reverse-proxy.md](reverse-proxy.md)) | aucun proxy |
 | `HSTS_MAX_AGE` | en-tête HSTS en secondes (HTTPS seulement) | aucun |
-| `VAULTIA_IMAGE` | autre image que celle épinglée (tests, ou `…:rc` suivi par Watchtower : [update.md](update.md#suivi-automatique-des-candidats-watchtower-facultatif)) | image épinglée de `compose.yaml` |
+| `VAULTIA_IMAGE` | autre image que celle épinglée (tests, ou canal `…:rc` / `…:stable` suivi par Watchtower : [update.md](update.md#mises-à-jour-automatiques-watchtower-facultatif)) | image épinglée de `compose.yaml` |
 | `INTELLIGENCE_PROVIDERS` | moteurs d'analyse installés | vision locale complète, sans service externe |
 | `INTELLIGENCE_MODELS_PROVISION` | installation automatique du modèle de vision : `auto` ou `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact envoyé aux bases produit ouvertes (avec `open-facts`) | vide |

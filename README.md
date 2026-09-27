@@ -283,11 +283,14 @@ Database migrations run automatically at start. See [docs/update.md](docs/update
 limits) and [docs/backup-restore.md](docs/backup-restore.md).
 
 **Optional automatic updates (Watchtower)**: the pinned image stays the default. An administrator
-may instead set `VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` (in `.env` or as a Portainer stack
-variable) and run a separate Watchtower with `--scope vaultia`: only the Vaultia container is
-labelled, PostgreSQL is excluded. New candidates, and their database migrations, are then applied
-automatically, with no backup taken for you. Details and risks:
-[docs/update.md](docs/update.md#suivi-automatique-des-candidats-watchtower-facultatif).
+may instead choose a moving channel, in `.env` or as a Portainer stack variable:
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` (release candidates) or
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:stable` (stable releases, not published yet during the
+beta; never `latest`). The two channels are independent. With a separate Watchtower run with
+`--scope vaultia` (only the Vaultia container is labelled, PostgreSQL is excluded), new versions of
+the chosen channel, and their database migrations, are applied automatically, with no backup taken
+for you. Details and risks:
+[docs/update.md](docs/update.md#mises-à-jour-automatiques-watchtower-facultatif).
 
 ### Documentation (French)
 
@@ -378,11 +381,14 @@ Les migrations de base s'appliquent seules au démarrage. Voir [docs/update.md](
 (limites du retour arrière) et [docs/backup-restore.md](docs/backup-restore.md).
 
 **Mises à jour automatiques facultatives (Watchtower)** : l'image épinglée reste le défaut. Un
-administrateur peut choisir `VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` (dans `.env` ou en
-variable de pile Portainer) et un Watchtower séparé lancé avec `--scope vaultia` : seul le
-conteneur Vaultia est étiqueté, PostgreSQL est exclu. Chaque nouveau candidat, migrations de base
-comprises, s'applique alors seul, sans sauvegarde préalable. Détail et risques :
-[docs/update.md](docs/update.md#suivi-automatique-des-candidats-watchtower-facultatif).
+administrateur peut choisir un canal mobile, dans `.env` ou en variable de pile Portainer :
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` (candidats) ou
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:stable` (versions stables, pas encore publié pendant la
+bêta ; jamais `latest`). Les deux canaux sont indépendants. Avec un Watchtower séparé lancé avec
+`--scope vaultia` (seul le conteneur Vaultia est étiqueté, PostgreSQL est exclu), chaque nouvelle
+version du canal choisi, migrations de base comprises, s'applique alors seule, sans sauvegarde
+préalable. Détail et risques :
+[docs/update.md](docs/update.md#mises-à-jour-automatiques-watchtower-facultatif).
 
 ### Documentation
 

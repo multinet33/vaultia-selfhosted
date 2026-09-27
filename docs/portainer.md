@@ -134,7 +134,7 @@ Facultatives, à **laisser absentes** pour une installation standard :
 | --- | --- | --- |
 | `TRUSTED_PROXIES` | adresse(s) du reverse proxy, derrière HTTPS ([reverse-proxy.md](reverse-proxy.md)) | vide |
 | `HSTS_MAX_AGE` | en-tête HSTS, en secondes (HTTPS seulement) | vide (aucun) |
-| `VAULTIA_IMAGE` | autre image que celle épinglée (tests, ou `…:rc` suivi par Watchtower : [update.md](update.md#suivi-automatique-des-candidats-watchtower-facultatif)) | image épinglée de `compose.yaml` |
+| `VAULTIA_IMAGE` | autre image que celle épinglée (tests, ou canal `…:rc` / `…:stable` suivi par Watchtower : [update.md](update.md#mises-à-jour-automatiques-watchtower-facultatif)) | image épinglée de `compose.yaml` |
 | `INTELLIGENCE_PROVIDERS` | moteurs d'analyse installés | vision locale complète, sans service externe |
 | `INTELLIGENCE_MODELS_PROVISION` | installation automatique du modèle de vision : `auto` ou `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact envoyé aux bases produit ouvertes (seulement avec `open-facts`) | vide |
@@ -282,10 +282,11 @@ l'équivalent de `docker compose down -v` efface la base et les fichiers. Limite
 et détail des versions : [update.md](update.md).
 
 **Mises à jour automatiques (facultatif)** : avec la variable de pile
-`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` et un Watchtower dans une autre pile, Vaultia suit
-seul chaque nouveau candidat, migrations comprises, sans sauvegarde préalable. Moins prudent que
-la procédure ci-dessus : lire d'abord
-[update.md § Suivi automatique](update.md#suivi-automatique-des-candidats-watchtower-facultatif).
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc` (candidats) ou, une fois publié,
+`VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:stable` (versions stables), sans modifier
+`compose.yaml`, et un Watchtower dans une autre pile, Vaultia suit seul le canal choisi, migrations
+comprises, sans sauvegarde préalable. Moins prudent que la procédure ci-dessus : lire d'abord
+[update.md § Mises à jour automatiques](update.md#mises-à-jour-automatiques-watchtower-facultatif).
 
 ## 12. Sauvegarde (Backup ALL)
 
