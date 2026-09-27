@@ -108,7 +108,7 @@ La bêta installe **toute** la vision locale ; il n'existe pas de variante allé
 | `NOTIFICATIONS_CRON_SECRET` | vide | active `POST /api/notifications/refresh` pour une tâche planifiée externe |
 | `WEBHOOK_ALLOW_PRIVATE_NETWORKS` | `false` | autorise les webhooks vers le réseau local |
 | `WEBHOOK_SECRET_KEY` | dérivée | clé des secrets de webhooks (≥ 32 caractères) |
-| `VAULTIA_IMAGE` | image épinglée de `compose.yaml` | autre image (tests seulement) |
+| `VAULTIA_IMAGE` | image épinglée de `compose.yaml` | autre image (tests, ou `…:rc` suivi par Watchtower : [update.md](update.md#suivi-automatique-des-candidats-watchtower-facultatif)) |
 | `POSTGRES_USER`, `POSTGRES_DB` | `vaultia` | à ne pas changer après l'installation |
 
 Aucune télémétrie : ni Vaultia, ni Next.js, ni Prisma, ni ONNX Runtime n'envoient de données.

@@ -41,7 +41,7 @@ Une mise à jour = une nouvelle ligne `image:` dans ce dépôt. Chaque image can
 | --- | --- |
 | `sha-<SHA complet du code source>` | immuable : un commit source = une image |
 | `<version>-rc.<N>` | immuable, jamais republié |
-| `rc` | mobile : dernier candidat (pour information ; `compose.yaml` ne l'utilise pas) |
+| `rc` | mobile : dernier candidat (`compose.yaml` ne l'utilise pas par défaut ; voir [Suivi automatique](#suivi-automatique-des-candidats-watchtower-facultatif)) |
 | étiquette `org.opencontainers.image.revision` | SHA complet du code source |
 
 Vérifier l'image lancée :
@@ -88,6 +88,109 @@ seul).
 
 Pendant la bêta, un candidat peut introduire des migrations ; aucune compatibilité descendante
 n'est promise entre candidats.
+
+## Suivi automatique des candidats (Watchtower, facultatif)
+
+Deux modes, au choix de l'administrateur. **Le mode A est le défaut et reste recommandé.**
+
+| | A — épinglé (défaut) | B — suivi automatique `:rc` |
+| --- | --- | --- |
+| `VAULTIA_IMAGE` | vide (non défini) | `ghcr.io/multinet33/vaultia:rc` |
+| Image lancée | version + digest épinglés dans `compose.yaml` | dernier candidat publié, quel qu'il soit |
+| Quand elle change | quand ce dépôt change sa ligne `image:` **et** que vous redéployez | dès que le tag `rc` est déplacé, au prochain passage de Watchtower |
+| Sauvegarde avant mise à jour | faite par vous (§ Procédure) | **aucune** : Watchtower n'en fait pas |
+| Caractère | sûr, reproductible, contrôlé par l'administrateur | pratique pour suivre la bêta, moins prudent |
+
+### Ce que fait `compose.yaml`
+
+Le seul service `vaultia` porte deux étiquettes :
+
+    com.centurylinklabs.watchtower.enable=true
+    com.centurylinklabs.watchtower.scope=vaultia
+
+**Elles n'activent rien à elles seules** : il faut qu'un administrateur fasse tourner un Watchtower
+compatible, lancé avec le filtrage par étiquette (`WATCHTOWER_LABEL_ENABLE=true`) et la portée
+`vaultia` (`--scope vaultia`). En mode A, l'image est désignée par son digest : il n'existe aucune
+image plus récente pour cette référence, le conteneur ne bouge pas.
+
+**PostgreSQL n'est volontairement pas étiqueté** : il reste hors de la portée `vaultia`, et un
+changement de version majeure de PostgreSQL ne doit jamais se faire automatiquement
+([§ PostgreSQL](#postgresql)). Aucun accès au socket Docker n'est donné à la pile Vaultia : seul le
+conteneur Watchtower, exploité à part, en a besoin.
+
+### Activer le mode B
+
+1. Sauvegarde ALL vérifiée (`./scripts/backup.sh`, `storage_verify=ok`) et copie de `.env`.
+2. Dans `.env` : `VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc`, puis
+   `docker compose pull && docker compose up -d`. Vérifier : `docker compose images vaultia`.
+3. Lancer un Watchtower **séparé** (autre dossier ou autre pile Portainer), par exemple :
+
+       services:
+         watchtower-vaultia:
+           image: containrrr/watchtower:latest
+           container_name: watchtower-vaultia
+           restart: unless-stopped
+           volumes:
+             - /var/run/docker.sock:/var/run/docker.sock
+           environment:
+             TZ: Europe/Paris
+             WATCHTOWER_LABEL_ENABLE: "true"
+             WATCHTOWER_CLEANUP: "true"
+           command:
+             - "--schedule"
+             - "0 0 * * * *"
+             - "--scope"
+             - "vaultia"
+
+   `--schedule` prend une expression cron **à six champs, secondes comprises**
+   (`secondes minutes heures jour mois jour-de-semaine`) : `0 0 * * * *` = une vérification par
+   heure, à la minute 00 (et non « à minuit », comme le lirait un cron à cinq champs).
+   `--scope vaultia` et `WATCHTOWER_LABEL_ENABLE` limitent ce Watchtower au seul conteneur
+   Vaultia ; il ne touche ni PostgreSQL ni vos autres conteneurs.
+
+Quand la publication de Vaultia déplace `rc` vers un nouveau candidat (image immuable), Watchtower
+voit le digest changer, tire l'image et **recrée uniquement le conteneur Vaultia**, avec la même
+configuration et les mêmes volumes. PostgreSQL continue de tourner.
+
+Pour revenir au mode A : vider `VAULTIA_IMAGE` et redéployer. Attention : si le candidat suivi
+est plus récent que l'image épinglée et a appliqué des migrations, revenir à l'image épinglée n'est
+pas sûr (voir ci-dessous) ; attendre que ce dépôt épingle une version au moins aussi récente.
+
+### Sécurité des mises à jour en mode B — à lire avant d'activer
+
+- Un nouveau candidat est **tiré et démarré automatiquement**, sans vous, à n'importe quelle heure
+  du planning.
+- Au démarrage, Vaultia **applique les migrations de base** : une mise à jour automatique peut donc
+  modifier le schéma de la base.
+- Watchtower **ne fait aucune Sauvegarde ALL** avant de mettre à jour, et **n'offre aucun retour
+  arrière de la base**. Les sauvegardes restent **votre responsabilité** : planifier
+  `./scripts/backup.sh` régulièrement (et garder `.env`) est indispensable.
+- Après une migration, relancer l'image précédente ne suffit pas forcément : le retour arrière peut
+  exiger la **restauration d'une Sauvegarde ALL antérieure à la mise à jour**, avec l'ancienne
+  image ([§ En cas d'échec](#en-cas-déchec--limites-du-retour-arrière),
+  [backup-restore.md](backup-restore.md)). Les modifications faites depuis sont alors perdues.
+- Les volumes persistants ne doivent **jamais** être supprimés lors d'une mise à jour ; **ne jamais
+  utiliser `docker compose down -v`** comme procédure de mise à jour.
+- PostgreSQL ne doit pas être mis à jour par ce Watchtower : ne lui ajoutez pas ces étiquettes.
+
+### Pile Portainer depuis Git
+
+Une pile Portainer peut être déployée directement depuis
+`https://github.com/multinet33/vaultia-selfhosted.git` ([portainer.md](portainer.md)). Pour le
+mode B, **ne modifiez pas `compose.yaml`** : gardez le fichier contrôlé par Git et ajoutez
+simplement, dans les variables d'environnement de la pile :
+
+    VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc
+
+puis **Update the stack** (avec **Re-pull image**). Le Watchtower ci-dessus vit de préférence dans
+**une autre pile** (pile de maintenance), pas dans celle de Vaultia :
+
+- pile `vaultia` → Vaultia + PostgreSQL (ce dépôt, sans socket Docker) ;
+- pile de maintenance → Watchtower (seul à monter `/var/run/docker.sock`).
+
+Watchtower recrée le conteneur Vaultia hors de Portainer ; Portainer continue de l'afficher dans la
+pile. Un **Pull and redeploy** ultérieur de la pile garde la variable `VAULTIA_IMAGE` et reste sur
+`:rc`.
 
 ## PostgreSQL
 

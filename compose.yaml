@@ -70,6 +70,13 @@ services:
       - vaultia
     # Laisse aux requêtes en cours le temps de se terminer (SIGTERM, puis SIGKILL).
     stop_grace_period: 30s
+    # Watchtower (facultatif, sans effet seul) : désigne ce seul conteneur à un Watchtower externe
+    # lancé avec --label-enable --scope vaultia. PostgreSQL n'est volontairement pas étiqueté.
+    # Avec l'image épinglée par défaut, rien ne bouge ; seul VAULTIA_IMAGE=…:rc suit les candidats.
+    # Détail et risques (migrations, sauvegardes) : docs/update.md.
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=vaultia"
 
 volumes:
   postgres-data:

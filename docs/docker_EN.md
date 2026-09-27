@@ -139,7 +139,7 @@ Optional (leave empty):
 | --- | --- | --- |
 | `TRUSTED_PROXIES` | reverse proxy address(es), behind HTTPS ([reverse-proxy.md](reverse-proxy.md)) | no proxy |
 | `HSTS_MAX_AGE` | HSTS header in seconds (HTTPS only) | none |
-| `VAULTIA_IMAGE` | image other than the pinned one (testing only) | pinned image from `compose.yaml` |
+| `VAULTIA_IMAGE` | image other than the pinned one (testing, or `…:rc` tracked by Watchtower: [update.md](update.md#suivi-automatique-des-candidats-watchtower-facultatif)) | pinned image from `compose.yaml` |
 | `INTELLIGENCE_PROVIDERS` | installed analysis engines | full local Vision, no external service |
 | `INTELLIGENCE_MODELS_PROVISION` | automatic Vision model installation: `auto` or `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact sent to open product databases (with `open-facts`) | empty |
