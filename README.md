@@ -97,7 +97,9 @@ Two options:
 
 - **HTTPS on your home network, no domain needed (all features)**: the optional Caddy overlay of
   this repository with its own local certificate authority (`https://vaultia.home.arpa`): see
-  [docs/https.md](docs/https.md) (French).
+  [docs/https.md](docs/https.md) (French). Portainer stack: Compose path
+  `compose.portainer-https.yaml` ([docs/portainer_EN.md § 13](docs/portainer_EN.md#13-local-https-with-portainer-caddy)),
+  not `COMPOSE_FILE`.
 - **HTTPS behind your own reverse proxy or domain (all features)**: (Caddy, nginx, Traefik, Nginx
   Proxy Manager, Cloudflare Tunnel…), set `BETTER_AUTH_URL` to the `https://` address: see
   [docs/reverse-proxy.md](docs/reverse-proxy.md).
@@ -197,7 +199,8 @@ Deux possibilités :
 
 - **HTTPS à la maison, sans domaine (toutes les fonctions)** : la surcouche Caddy facultative de
   ce dépôt, avec son autorité de certification locale (`https://vaultia.home.arpa`) : voir
-  [docs/https.md](docs/https.md).
+  [docs/https.md](docs/https.md). Pile Portainer : Compose path `compose.portainer-https.yaml`
+  ([docs/portainer.md § 13](docs/portainer.md#13-https-local-avec-portainer-caddy)), pas `COMPOSE_FILE`.
 - **HTTPS derrière votre reverse proxy ou votre domaine (toutes les fonctions)** : (Caddy, nginx,
   Traefik, Nginx Proxy Manager, Cloudflare Tunnel…), mettez l'adresse `https://` dans
   `BETTER_AUTH_URL` : voir [docs/reverse-proxy.md](docs/reverse-proxy.md).
@@ -411,7 +414,8 @@ préalable. Détail et risques :
 | Document | Contenu |
 | --- | --- |
 | [docker.md](docs/docker.md) | **installation complète en ligne de commande** (Docker Compose), réseau local |
-| [portainer.md](docs/portainer.md) | **installation complète avec Portainer** (pile depuis ce dépôt), réseau local |
+| [portainer.md](docs/portainer.md) | **installation complète avec Portainer** (pile depuis ce dépôt), réseau local ; HTTPS local (§ 13) |
+| [https.md](docs/https.md) | HTTPS local avec Caddy, sans domaine : ligne de commande et Portainer |
 | [installation.md](docs/installation.md) | installation rapide, premier compte, vérifications |
 | [configuration.md](docs/configuration.md) | toutes les variables de `.env`, comptes, santé |
 | [storage.md](docs/storage.md) | volumes : quoi, où, que se passe-t-il s'ils disparaissent |

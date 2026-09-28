@@ -1,0 +1,26 @@
+# Structure des fichiers Compose (scripts/check-compose.sh) : HTTP, HTTPS en ligne de commande et
+# HTTPS Portainer cohérents ; échoue si compose.portainer-https.yaml diverge de la fusion
+# compose.yaml + compose.https.yaml ou de https.Caddyfile. Rien n'est démarré.
+name: Compose check
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+    paths: [compose.yaml, compose.https.yaml, compose.portainer-https.yaml, https.Caddyfile, scripts/**, .github/workflows/compose-check.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose version
+      - name: Syntaxe des scripts
+        run: for script in scripts/*.sh; do bash -n "$script"; done
+      - name: Structure et anti-dérive
+        run: ./scripts/check-compose.sh

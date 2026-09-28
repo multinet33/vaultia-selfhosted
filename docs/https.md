@@ -39,6 +39,17 @@ Fichiers de ce dépôt : [`compose.https.yaml`](../compose.https.yaml) (surcouch
 `caddy`, volumes `caddy-data` et `caddy-config`, Vaultia n'est plus publié sur l'hôte) et
 [`https.Caddyfile`](../https.Caddyfile).
 
+Deux façons de l'activer, selon la manière dont vous gérez Vaultia :
+
+| Vous utilisez | Activation | Détail |
+| --- | --- | --- |
+| **Docker Compose en ligne de commande** | `COMPOSE_FILE=compose.yaml:compose.https.yaml` dans `.env` | étapes 3 et 4 ci-dessous |
+| **une pile Portainer** (*Repository*) | Compose path **`compose.portainer-https.yaml`** : fichier autonome, identique à la fusion des deux fichiers (vérifié par la CI) | [portainer.md § 13](portainer.md#13-https-local-avec-portainer-caddy) |
+
+`COMPOSE_FILE` n'a **aucun effet** dans une pile Portainer : Portainer passe toujours le Compose
+path avec `-f`, ce qui fait ignorer `COMPOSE_FILE` à Compose. Les étapes 1, 2 et 5 à 8 sont
+communes aux deux modes.
+
 ### 1. Choisir le nom
 
 Utilisez un nom sous **`home.arpa`**, le domaine réservé aux réseaux domestiques (RFC 8375), par
@@ -58,7 +69,9 @@ Les appareils doivent **utiliser ce DNS** (réglage DHCP de votre routeur, ou r�
 l'appareil). Vérifier depuis un appareil : `nslookup vaultia.home.arpa` doit répondre
 `192.168.1.100`. Sans DNS local, un appareil isolé peut aussi utiliser son fichier `hosts`.
 
-### 3. Configurer `.env`
+### 3. Configurer `.env` (ligne de commande)
+
+Avec Portainer, sautez les étapes 3 et 4 : [portainer.md § 13](portainer.md#13-https-local-avec-portainer-caddy).
 
 Dans `.env`, décommentez la section **HTTPS LOCAL** de [`.env.example`](../.env.example) et
 modifiez trois lignes existantes :
@@ -78,7 +91,7 @@ modifiez trois lignes existantes :
 - `VAULTIA_BIND_ADDRESS` : l'adresse du serveur où Caddy publie le port HTTPS (`127.0.0.1` le
   limiterait au serveur lui-même).
 
-### 4. Démarrer
+### 4. Démarrer (ligne de commande)
 
     docker compose up -d
     docker compose ps          # postgres, vaultia (healthy), caddy
@@ -89,6 +102,11 @@ modifiez trois lignes existantes :
 ### 5. Récupérer le certificat racine PUBLIC
 
     ./scripts/export-ca.sh                 # écrit vaultia-local-ca.crt
+
+Le script fonctionne dans les deux modes, sans lire les fichiers Compose : il retrouve le conteneur
+Caddy du projet (`vaultia` par défaut ; pile Portainer d'un autre nom :
+`COMPOSE_PROJECT_NAME=<pile> ./scripts/export-ca.sh`). Avec Portainer, lancez-le depuis un clone de ce
+dépôt sur le serveur ; aucun `.env` n'est nécessaire.
 
 Le script copie **uniquement** le certificat public de l'autorité (`root.crt`) et affiche son
 empreinte SHA-256, à comparer sur les appareils. La **clé privée** de l'autorité (`root.key`) ne quitte
@@ -132,9 +150,11 @@ Dans le navigateur : connexion, caméra du scanner (autorisation demandée), `/a
 - La surcouche **ne publie pas le port 80** : aucune redirection HTTP → HTTPS n'est imposée, et un
   appareil qui n'a pas encore l'autorité n'est pas bloqué par une redirection.
 - Vaultia n'est plus joignable directement en HTTP : `BETTER_AUTH_URL` est en HTTPS, un seul point
-  d'entrée. Pour revenir au scénario A, recommentez `COMPOSE_FILE`, remettez `BETTER_AUTH_URL` en
-  `http://…` et `TRUSTED_PROXIES` vide, puis `docker compose up -d --remove-orphans` (arrête Caddy ; les données
-  ne bougent pas, les volumes de Caddy restent pour un retour ultérieur).
+  d'entrée. Pour revenir au scénario A en ligne de commande, recommentez `COMPOSE_FILE`, remettez
+  `BETTER_AUTH_URL` en `http://…` et `TRUSTED_PROXIES` vide, puis
+  `docker compose up -d --remove-orphans` (arrête Caddy ; les données ne bougent pas, les volumes de
+  Caddy restent pour un retour ultérieur). Avec Portainer :
+  [portainer.md § 13.3](portainer.md#133-revenir-de-https-à-http).
 - **HSTS** : laissez `HSTS_MAX_AGE` vide avec une autorité locale. HSTS force le navigateur à refuser
   toute erreur de certificat pendant la durée indiquée : si l'autorité change (volume `caddy-data`
   perdu, réinstallation), les appareils ne pourraient plus ouvrir Vaultia avant l'expiration. Si

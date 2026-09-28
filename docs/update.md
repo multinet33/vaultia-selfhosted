@@ -293,7 +293,10 @@ Les mêmes avertissements valent pour les deux canaux :
 ### Pile Portainer depuis Git
 
 Une pile Portainer peut être déployée directement depuis
-`https://github.com/multinet33/vaultia-selfhosted.git` ([portainer.md](portainer.md)). Pour
+`https://github.com/multinet33/vaultia-selfhosted.git` ([portainer.md](portainer.md)), avec le
+Compose path `compose.yaml` (HTTP) ou `compose.portainer-https.yaml` (HTTPS local,
+[portainer.md § 13](portainer.md#13-https-local-avec-portainer-caddy)) ; tout ce qui suit vaut pour
+les deux. Pour
 choisir un canal, **ne modifiez pas `compose.yaml`** : gardez le fichier piloté par Git (et son
 comportement épinglé par défaut) et définissez seulement, dans les variables d'environnement de la
 pile, **l'une** de ces valeurs :
@@ -305,7 +308,7 @@ puis **Update the stack** (avec **Re-pull image**). Le choix du canal reste ains
 Portainer. Le Watchtower ci-dessus vit de préférence dans **une autre pile** (pile de
 maintenance), pas dans celle de Vaultia :
 
-- pile `vaultia` → Vaultia + PostgreSQL (ce dépôt, sans socket Docker) ;
+- pile `vaultia` → Vaultia + PostgreSQL, + Caddy en HTTPS local (ce dépôt, sans socket Docker) ;
 - pile de maintenance → Watchtower (seul à monter `/var/run/docker.sock`).
 
 Watchtower recrée le conteneur Vaultia hors de Portainer ; Portainer continue de l'afficher dans la

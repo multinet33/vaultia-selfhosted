@@ -8,6 +8,7 @@ volumes Docker et un fichier.
 | Base PostgreSQL : comptes, Espaces, propriétés, objets, véhicules, documents (métadonnées), valeurs, historique | `vaultia_postgres-data` | `/var/lib/postgresql` (postgres) | **oui** — `scripts/backup.sh` (`pg_dump`) | **perte de tout l'inventaire** ; seule une sauvegarde le rend |
 | Fichiers : photos, documents, miniatures, avatars, archives | `vaultia_media` | `/var/lib/vaultia/media` (vaultia) | **oui** — `scripts/backup.sh` (`tar`, vérifié par `storage-verify`) | **perte de tous les fichiers** ; la base les référence encore, `storage-verify` les signale manquants |
 | Modèles de la vision locale (SigLIP 2 90 Mio, E5 130 Mio) | `vaultia_models` | `/var/lib/vaultia/models` (vaultia) | **non** : artefact d'exécution | aucune donnée perdue : il est retéléchargé et revérifié au démarrage suivant (Internet requis une fois) |
+| HTTPS local seulement : autorité de certification de Caddy, certificats, état | `vaultia_caddy-data`, `vaultia_caddy-config` | `/data`, `/config` (caddy) | **à part** (clé privée de l'autorité : à traiter comme un secret) | nouvelle autorité créée : son certificat est à réinstaller sur chaque appareil ([https.md](https.md)) |
 | Configuration et secrets | fichier `.env` | — | **à part** (voir [backup-restore.md](backup-restore.md)) | sans `BETTER_AUTH_SECRET`, les sauvegardes restent restaurables mais sessions, liens de partage et secrets de webhooks sont perdus |
 
 Emplacement d'un volume sur le disque de l'hôte (Linux) :
@@ -29,4 +30,7 @@ Ne copiez pas les dossiers de PostgreSQL à chaud : ce n'est pas une sauvegarde 
 Le nom de projet `vaultia` (ligne `name:` de `compose.yaml`) préfixe les volumes : ne le changez
 pas après l'installation, sinon Docker crée des volumes neufs et vides. Avec Portainer, c'est le
 **nom de la pile** qui préfixe les volumes (`<pile>_postgres-data`, `<pile>_media`,
-`<pile>_models`) : même règle ([portainer.md](portainer.md)).
+`<pile>_models`) : même règle ([portainer.md](portainer.md)). Les trois fichiers Compose de la
+distribution (`compose.yaml`, surcouche `compose.https.yaml`, `compose.portainer-https.yaml`)
+déclarent les mêmes volumes : passer de HTTP à HTTPS local et inversement, sous le même nom de
+projet ou de pile, réutilise les mêmes données.

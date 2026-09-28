@@ -58,6 +58,10 @@ Dans Portainer : **Stacks › Add stack**.
 | Compose path | `compose.yaml` |
 | GitOps updates | **désactivées** : les mises à jour restent une action explicite de votre part (§ 11) |
 
+HTTPS local avec Caddy (facultatif) : Compose path `compose.portainer-https.yaml` et quelques
+variables de plus, voir le § 13. Ce choix se fait à la création de la pile ; pour une pile
+existante, § 13.2.
+
 La pile tire l'image **épinglée** dans `compose.yaml`
 (`ghcr.io/multinet33/vaultia:0.1.0-rc.5@sha256:477d2f1d…`) : aucune construction sur le serveur,
 aucun `latest`.
@@ -318,4 +322,174 @@ Vérification, restauration et fréquence : [backup-restore.md](backup-restore.m
 se fait sur une installation **neuve** (volumes vides), selon cette procédure uniquement.
 
 Cette procédure (pile lancée sans `.env`, sauvegarde par un clone avec les mêmes valeurs et
-`-p <pile>`) a été vérifiée : sauvegarde complète, conteneurs de la pile non recréés.
+`-p <pile>`) a été vérifiée : sauvegarde complète, conteneurs de la pile non recréés. Pile en
+HTTPS (`compose.portainer-https.yaml`) : ajoutez `-f compose.portainer-https.yaml` (§ 13.5).
+
+## 13. HTTPS local avec Portainer (Caddy)
+
+HTTPS sur votre réseau local, sans domaine Internet : Caddy et sa propre autorité de certification
+locale se placent devant Vaultia. Principe, DNS local, installation du certificat sur les
+appareils : [https.md](https.md). Cette section ne décrit que la partie Portainer.
+
+> **Ne mettez pas `COMPOSE_FILE` dans les variables de la pile.** C'est la méthode de la ligne de
+> commande (`.env`) ; Portainer l'ignore. Il déploie une pile Git avec
+> `docker compose -f <Compose path> --env-file stack.env --project-name <pile> up -d`, et un `-f`
+> explicite fait ignorer `COMPOSE_FILE` : la pile garde postgres + vaultia en HTTP, sans Caddy.
+> Le champ *Additional paths* ne convient pas non plus : la surcouche monte `./https.Caddyfile`,
+> que Docker chercherait sur l'hôte dans le dossier interne de Portainer (`/data/compose/<n>/`), où
+> il n'existe pas.
+
+Pour Portainer, le dépôt fournit donc un **fichier autonome**, `compose.portainer-https.yaml` :
+PostgreSQL, Vaultia et Caddy, Caddyfile embarqué, sans `COMPOSE_FILE`. Il est identique à la fusion
+`compose.yaml` + `compose.https.yaml` (mêmes services, mêmes volumes, même réseau ; vérifié par la
+CI à chaque modification) : **seul le Compose path change**.
+
+Vérifié avec Portainer CE 2.21.5 (pile *Repository*) : installation, migration d'une pile HTTP
+existante, *Pull and redeploy*, sauvegarde, retour en HTTP puis de nouveau en HTTPS, sans perte de
+données ni changement d'autorité.
+
+### 13.1 Nouvelle installation en HTTPS
+
+Préparez d'abord le nom et le DNS local ([https.md § 1 et 2](https.md#1-choisir-le-nom)), puis
+**Stacks › Add stack** comme au § 3, avec un seul champ différent :
+
+| Champ | Valeur |
+| --- | --- |
+| Name | `vaultia` |
+| Build method | **Repository** |
+| Repository URL | `https://github.com/multinet33/vaultia-selfhosted.git` |
+| Repository reference | `refs/heads/main` |
+| Compose path | **`compose.portainer-https.yaml`** |
+| Additional paths | aucun |
+| GitOps updates | désactivées |
+
+Variables d'environnement (exemple : `192.168.1.100` est l'adresse de **votre** serveur) :
+
+    POSTGRES_USER=vaultia
+    POSTGRES_DB=vaultia
+    POSTGRES_PASSWORD=<valeur générée par openssl rand -hex 24>
+
+    BETTER_AUTH_SECRET=<valeur générée par openssl rand -base64 32>
+    BETTER_AUTH_URL=https://vaultia.home.arpa
+
+    VAULTIA_SIGNUP_POLICY=first-user
+    VAULTIA_SUBNET=172.30.83.0/24
+
+    VAULTIA_BIND_ADDRESS=192.168.1.100
+    VAULTIA_DOMAIN=vaultia.home.arpa
+    TRUSTED_PROXIES=172.30.83.10
+
+- `VAULTIA_DOMAIN` et l'hôte de `BETTER_AUTH_URL` sont **le même nom**.
+- `VAULTIA_BIND_ADDRESS` : l'adresse du serveur où Caddy publie le port 443.
+- `TRUSTED_PROXIES=172.30.83.10` : l'adresse fixe de Caddy dans le réseau interne, et rien d'autre.
+- Port 443 déjà pris sur le serveur : `CADDY_HTTPS_PORT=8443` et
+  `BETTER_AUTH_URL=https://vaultia.home.arpa:8443`.
+- `VAULTIA_PORT` est sans effet dans ce mode (Vaultia n'est publié que par Caddy) ; `COMPOSE_FILE`
+  n'est **pas** nécessaire.
+- Les variables facultatives du § 4 (`VAULTIA_IMAGE`, `INTELLIGENCE_…`, `WEBHOOK_…`…) s'appliquent à
+  l'identique.
+
+**Deploy the stack**, puis vérifiez :
+
+| Conteneur | État attendu |
+| --- | --- |
+| `vaultia-postgres-1` | *healthy*, aucun port publié |
+| `vaultia-vaultia-1` | *healthy*, **aucun port publié** |
+| `vaultia-caddy-1` | *running*, `192.168.1.100:443→443` seulement (les ports 80, 2019 et 443/udp affichés sans adresse sont seulement *exposés* par l'image, pas publiés) |
+
+Récupérez ensuite le certificat racine public (§ 13.6), installez-le sur chaque appareil
+([https.md § 6](https.md#6-installer-lautorité-sur-chaque-appareil)) et ouvrez
+`https://vaultia.home.arpa`.
+
+### 13.2 Passer une pile HTTP existante en HTTPS
+
+Portainer ne permet pas de modifier le Compose path d'une pile Git après sa création : on
+**supprime la pile** (pas ses volumes) puis on la **recrée sous le même nom** avec l'autre fichier.
+Les volumes d'une pile s'appellent `<nom de la pile>_postgres-data`, `<nom>_media`,
+`<nom>_models` : recréée sous le même nom, la pile retrouve exactement les mêmes. Supprimer une pile
+Compose dans Portainer arrête et retire ses conteneurs et son réseau, pas ses volumes nommés :
+Portainer exécute l'équivalent de `docker compose down --remove-orphans`, sans `-v` (vérifié avec
+Portainer CE 2.21.5 : volumes intacts, données retrouvées).
+
+1. **Sauvegarde ALL** (§ 12), vérifiée, copiée hors du serveur.
+2. **Relevez les variables** de la pile : ouvrez-la, section *Environment variables*, *Advanced
+   mode*, copiez tout dans votre gestionnaire de mots de passe (secrets compris). Notez aussi le
+   **nom exact** de la pile (ici `vaultia`).
+3. Préparez le DNS local ([https.md § 2](https.md#2-configurer-le-dns-local)).
+4. **Stacks › `vaultia` › Delete this stack**. Vaultia est indisponible jusqu'à l'étape 6.
+5. **Volumes** : vérifiez que `vaultia_postgres-data`, `vaultia_media` et `vaultia_models` sont
+   toujours là. N'en supprimez **aucun**.
+6. **Stacks › Add stack** : même **Name** (`vaultia`, à l'identique), Build method *Repository*,
+   même dépôt, Compose path **`compose.portainer-https.yaml`**. Collez les variables relevées, puis
+   modifiez-les :
+
+       BETTER_AUTH_URL=https://vaultia.home.arpa          (était http://192.168.1.100:6080)
+       VAULTIA_DOMAIN=vaultia.home.arpa                   (nouvelle)
+       TRUSTED_PROXIES=172.30.83.10                       (nouvelle ou modifiée)
+       VAULTIA_BIND_ADDRESS=192.168.1.100                 (inchangée)
+
+   `POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET`, `POSTGRES_USER`, `POSTGRES_DB` et `VAULTIA_SUBNET`
+   restent **strictement identiques**. Supprimez `COMPOSE_FILE` si vous l'aviez ajoutée ;
+   `VAULTIA_PORT` peut rester (sans effet).
+7. **Deploy the stack**. Vérifiez comme au § 13.1, puis :
+   - **Volumes** : `vaultia_postgres-data`, `vaultia_media`, `vaultia_models` sont *in use* (mêmes
+     volumes, même date de création qu'avant), plus deux nouveaux, `vaultia_caddy-data` et
+     `vaultia_caddy-config` ;
+   - connectez-vous sur `https://vaultia.home.arpa` avec votre **compte existant** : vos objets,
+     photos et documents sont là ;
+   - `http://192.168.1.100:6080` ne répond plus : c'est voulu, tout passe par Caddy.
+
+Si Vaultia affiche une instance vide (création du premier compte proposée), la pile n'a pas été
+recréée sous le même nom : **ne créez aucun compte**, supprimez cette pile, vérifiez le nom et
+recommencez l'étape 6 ; vos volumes d'origine n'ont pas été touchés.
+
+### 13.3 Revenir de HTTPS à HTTP
+
+Même principe, dans l'autre sens :
+
+1. Sauvegarde ALL (§ 12, variante HTTPS).
+2. Relevez les variables ; **Delete this stack** ; vérifiez les volumes (§ 13.2, étapes 2, 4, 5).
+3. **Add stack**, même nom, Compose path **`compose.yaml`**, variables du § 4 :
+
+       BETTER_AUTH_URL=http://192.168.1.100:6080
+       VAULTIA_BIND_ADDRESS=192.168.1.100
+       VAULTIA_PORT=6080
+
+   `TRUSTED_PROXIES` : supprimée (ou vide). `VAULTIA_DOMAIN` peut rester, sans effet.
+4. **Deploy the stack** : postgres + vaultia, Vaultia de nouveau publié sur le port 6080, mêmes
+   données. Le conteneur Caddy a disparu avec l'ancienne pile.
+
+Les volumes `vaultia_caddy-data` et `vaultia_caddy-config` restent : ne les supprimez pas si vous
+comptez revenir en HTTPS. Au retour, Caddy retrouve **la même autorité** : rien à réinstaller sur les
+appareils (vérifié : empreinte identique).
+
+### 13.4 Mettre à jour une pile HTTPS
+
+Exactement comme au § 11 : **Pull and redeploy** (avec *Re-pull image*), variables inchangées. Le
+Compose path reste `compose.portainer-https.yaml` : il suit la nouvelle version du dépôt (image
+épinglée, Caddyfile). L'autorité locale, dans `vaultia_caddy-data`, est conservée. Watchtower
+(facultatif) fonctionne comme en HTTP : seul le conteneur Vaultia porte les étiquettes
+([update.md](update.md#pile-portainer-depuis-git)).
+
+### 13.5 Sauvegarde d'une pile HTTPS
+
+Même procédure qu'au § 12, en désignant **le fichier de la pile** :
+
+    COMPOSE="docker compose -p vaultia -f compose.portainer-https.yaml" ./scripts/backup.sh
+
+Le `.env` du clone contient les mêmes variables que la pile (HTTPS comprises). Sans
+`-f compose.portainer-https.yaml`, le script relancerait Vaultia d'après `compose.yaml`, donc
+publié en HTTP à côté de Caddy. Vérifié : sauvegarde complète (`storage_verify=ok`), aucun conteneur
+recréé, Vaultia toujours sans port publié. Sauvegardez aussi le volume `vaultia_caddy-data`
+([https.md § Persistance](https.md#persistance-et-sauvegarde)).
+
+### 13.6 Certificat racine public
+
+Depuis un terminal sur le serveur, dans un clone de ce dépôt (le `.env` n'est pas nécessaire) :
+
+    ./scripts/export-ca.sh                              # pile nommée vaultia
+    COMPOSE_PROJECT_NAME=<nom de la pile> ./scripts/export-ca.sh    # autre nom
+
+Le script retrouve le conteneur Caddy de la pile et n'exporte que le certificat **public**
+(`root.crt`) dans `vaultia-local-ca.crt`, avec son empreinte SHA-256 ; la clé privée ne quitte
+jamais le volume. Installation sur les appareils : [https.md § 6](https.md#6-installer-lautorité-sur-chaque-appareil).

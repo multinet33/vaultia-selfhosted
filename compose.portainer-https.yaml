@@ -1,0 +1,152 @@
+# Vaultia auto-hébergé — HTTPS local avec Caddy, en UN SEUL fichier : pile Portainer « Repository »
+# (docs/portainer.md § HTTPS local), Compose path = compose.portainer-https.yaml.
+#
+# Pourquoi un fichier à part : Portainer déploie une pile Git avec
+#     docker compose -f <Compose path> --env-file stack.env --project-name <nom de la pile> up -d
+# Un `-f` explicite fait ignorer COMPOSE_FILE : la variable de pile COMPOSE_FILE=compose.yaml:
+# compose.https.yaml n'ajoute donc jamais la surcouche. Et un fichier monté par chemin relatif
+# (./https.Caddyfile) serait cherché sur l'hôte à l'emplacement du clone interne de Portainer, où il
+# n'existe pas : le Caddyfile est donc embarqué ci-dessous (configs.content).
+#
+# Ce fichier est la fusion de compose.yaml + compose.https.yaml, à l'identique : mêmes services,
+# mêmes volumes (vaultia_postgres-data, vaultia_media, vaultia_models avec une pile nommée
+# `vaultia`), même réseau. scripts/check-compose.sh (CI) échoue à la moindre divergence : toute
+# modification de compose.yaml, compose.https.yaml ou https.Caddyfile se reporte ici.
+#
+# En ligne de commande, la surcouche reste la méthode documentée (docs/https.md) ; ce fichier y
+# fonctionne aussi : docker compose -f compose.portainer-https.yaml up -d
+name: vaultia
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vaultia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env (voir .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-vaultia}
+      # Encodage UTF-8 et tri neutre, quel que soit le système hôte.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+    volumes:
+      # PostgreSQL 18 : le volume se monte sur /var/lib/postgresql (sous-dossier par version majeure).
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - vaultia
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 60s
+
+  vaultia:
+    # Même image épinglée que compose.yaml (voir ses commentaires et docs/update.md).
+    # 0.1.0-rc.5 : source Vaultia 79985a6404b6994f41cc541c4b5e4b90d2a92655 (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.5@sha256:477d2f1d83cc039b843d27fec9e9c02b5823d013a3d613f9fd23a0cad95115e3}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vaultia}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-vaultia}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET manquant dans .env (voir .env.example)}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL manquant dans .env (voir .env.example)}
+      VAULTIA_SIGNUP_POLICY: ${VAULTIA_SIGNUP_POLICY:-first-user}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      HSTS_MAX_AGE: ${HSTS_MAX_AGE:-}
+      NOTIFICATIONS_CRON_SECRET: ${NOTIFICATIONS_CRON_SECRET:-}
+      MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-}
+      INTELLIGENCE_PROVIDERS: ${INTELLIGENCE_PROVIDERS:-zxing-barcode,tesseract-ocr,siglip2-vision,e5-embeddings,document-rules,open-facts}
+      INTELLIGENCE_MODELS_PROVISION: ${INTELLIGENCE_MODELS_PROVISION:-auto}
+      INTELLIGENCE_CONTACT: ${INTELLIGENCE_CONTACT:-}
+      DOCUMENT_INDEXER: ${DOCUMENT_INDEXER:-}
+      TESSERACT_LANGS: ${TESSERACT_LANGS:-}
+      WEBHOOK_ALLOW_PRIVATE_NETWORKS: ${WEBHOOK_ALLOW_PRIVATE_NETWORKS:-}
+      WEBHOOK_SECRET_KEY: ${WEBHOOK_SECRET_KEY:-}
+    volumes:
+      - media:/var/lib/vaultia/media
+      - models:/var/lib/vaultia/models
+    # Aucun port publié : Vaultia n'est joignable qu'à travers Caddy (le contrôle de santé du
+    # conteneur, interne, ne change pas).
+    networks:
+      - vaultia
+    # Laisse aux requêtes en cours le temps de se terminer (SIGTERM, puis SIGKILL).
+    stop_grace_period: 30s
+    # Watchtower (facultatif) : comme compose.yaml, ce seul conteneur (docs/update.md).
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=vaultia"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      vaultia:
+        condition: service_healthy
+    environment:
+      VAULTIA_DOMAIN: ${VAULTIA_DOMAIN:?VAULTIA_DOMAIN manquant (docs/https.md)}
+    ports:
+      # Seulement HTTPS : aucune écoute sur le port 80, donc aucune redirection HTTP → HTTPS imposée.
+      - "${VAULTIA_BIND_ADDRESS:-127.0.0.1}:${CADDY_HTTPS_PORT:-443}:443"
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+    volumes:
+      # Autorité locale, certificats et état de Caddy : persistants. La clé privée de l'autorité y
+      # reste ; seul son certificat PUBLIC s'exporte (scripts/export-ca.sh).
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      vaultia:
+        ipv4_address: ${CADDY_IPV4_ADDRESS:-172.30.83.10}
+
+# Copie exacte de https.Caddyfile (vérifiée par scripts/check-compose.sh). `$$` : le nom est lu par
+# Caddy dans son environnement, comme avec le fichier monté.
+configs:
+  caddyfile:
+    content: |
+      # HTTPS local de Vaultia (compose.https.yaml, docs/https.md). Le nom servi vient de VAULTIA_DOMAIN.
+      {
+      	# Aucune écoute HTTP : pas de redirection imposée vers HTTPS.
+      	auto_https disable_redirects
+      }
+
+      {$$VAULTIA_DOMAIN}:443 {
+      	# Autorité locale de Caddy : aucun appel à Internet ; les appareils doivent approuver sa racine.
+      	tls internal
+
+      	# Taille d'un envoi : au-dessus de la plus grande limite de Vaultia (archive de restauration,
+      	# 2 Gio) ; chaque route applique ensuite sa propre limite.
+      	request_body {
+      		max_size 2100MiB
+      	}
+
+      	# Caddy remplace le X-Forwarded-For qu'un client enverrait et y met l'adresse réelle ;
+      	# Vaultia ne le lit que parce que Caddy figure dans TRUSTED_PROXIES.
+      	reverse_proxy vaultia:3000 {
+      		transport http {
+      			read_timeout 10m
+      			write_timeout 10m
+      		}
+      	}
+
+      	# HSTS : posé par Vaultia seulement si HSTS_MAX_AGE est défini (déconseillé avec une autorité
+      	# locale, voir docs/https.md).
+      	encode zstd gzip
+      }
+
+volumes:
+  postgres-data:
+  media:
+  models:
+  caddy-data:
+  caddy-config:
+
+networks:
+  vaultia:
+    ipam:
+      config:
+        # Sous-réseau fixe : l'adresse de Caddy dans ce réseau est connue (TRUSTED_PROXIES).
+        - subnet: ${VAULTIA_SUBNET:-172.30.83.0/24}

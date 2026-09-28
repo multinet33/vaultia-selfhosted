@@ -8,6 +8,10 @@
 #     TRUSTED_PROXIES=172.30.83.10                 adresse de Caddy ci-dessous
 # puis `docker compose up -d`. Sans ces lignes, rien ne change (HTTP LAN ou reverse proxy existant).
 #
+# Pile Portainer : COMPOSE_FILE y est sans effet ; Compose path compose.portainer-https.yaml, fusion
+# autonome de compose.yaml et de ce fichier (docs/portainer.md § 13). Toute modification ici, dans
+# compose.yaml ou dans https.Caddyfile s'y reporte : scripts/check-compose.sh (CI) le vérifie.
+#
 # Caddy publie seulement le port HTTPS : aucune écoute sur le port 80, donc aucune redirection
 # HTTP → HTTPS imposée. Vaultia n'est plus publié sur l'hôte : tout passe par Caddy.
 services:

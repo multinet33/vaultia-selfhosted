@@ -139,7 +139,7 @@ de Vaultia, contrôlé contre le code.
 | `VAULTIA_BIND_ADDRESS` | non | `127.0.0.1` | Compose |
 | `VAULTIA_PORT` | non | `3000` | Compose |
 | `VAULTIA_SUBNET` | non | `172.30.83.0/24` | Compose |
-| `VAULTIA_DOMAIN` | non | vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml`) | Compose |
+| `VAULTIA_DOMAIN` | non | vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml` ou `compose.portainer-https.yaml`) | Compose |
 | `CADDY_HTTPS_PORT` | non | `443` | Compose |
 | `CADDY_IPV4_ADDRESS` | non | `172.30.83.10` | Compose |
 | `MEDIA_MAX_UPLOAD_BYTES` | non | `10000000` (10 Mo) | Vaultia |
@@ -354,7 +354,7 @@ de Vaultia, contrôlé contre le code.
 
 - **Obligatoire** : non ; lue par : Compose.
 - **Défaut de l'application** : aucun : obligatoire avec la surcouche Caddy.
-- **Défaut de la distribution** : vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml`).
+- **Défaut de la distribution** : vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml` ou, pile Portainer, `compose.portainer-https.yaml`).
 - **Valeurs, format** : nom d'hôte.
 - **Rôle** : nom servi par Caddy ; doit être l'hôte de `BETTER_AUTH_URL`.
 - **Si absente** : sans surcouche Caddy : sans effet ; avec : Compose refuse de démarrer.
@@ -395,7 +395,8 @@ de Vaultia, contrôlé contre le code.
 - **Obligatoire** : non ; lue par : Compose.
 - **Défaut de l'application** : vide : `compose.yaml` seul.
 - **Valeurs, format** : fichiers Compose séparés par `:`.
-- **Rôle** : active la surcouche HTTPS local (`compose.yaml:compose.https.yaml`) : Caddy, autorité locale, Vaultia joignable seulement par Caddy. Lue par Compose (et donc par `scripts/backup.sh`) depuis `.env`.
+- **Rôle** : active la surcouche HTTPS local (`compose.yaml:compose.https.yaml`) : Caddy, autorité locale, Vaultia joignable seulement par Caddy. Lue par Compose (et donc par `scripts/backup.sh`) depuis `.env`, **en ligne de commande seulement**.
+- **Portainer** : sans effet dans une pile Git : Portainer passe toujours son Compose path avec `-f`, ce qui fait ignorer `COMPOSE_FILE`. HTTPS local avec Portainer : Compose path `compose.portainer-https.yaml` ([portainer.md § 13](portainer.md#13-https-local-avec-portainer-caddy)).
 - **Si absente** : installation standard : HTTP (boucle locale ou réseau local) ou reverse proxy existant.
 - **Si invalide** : fichier introuvable : Compose refuse de démarrer.
 - **Pourquoi la modifier** : HTTPS sur le réseau local sans domaine ni Internet (caméra du scanner, mode hors ligne, cookies `Secure`).
@@ -609,7 +610,7 @@ de Vaultia, contrôlé contre le code.
 - **Rôle** : commande utilisée par `backup.sh` et `restore.sh` (variable du shell de l'hôte, pas du `.env`).
 - **Si absente** : `docker compose`.
 - **Si invalide** : les scripts échouent.
-- **Pourquoi la modifier** : surcouche (`-f compose.override.yaml`) ou nom de projet (`-p`).
+- **Pourquoi la modifier** : surcouche (`-f compose.override.yaml`) ou nom de projet (`-p`) ; pile Portainer : `-p <pile>`, et `-f compose.portainer-https.yaml` si elle est en HTTPS local ([portainer.md § 13.5](portainer.md#135-sauvegarde-dune-pile-https)).
 - **Pourquoi ne pas la modifier** : doit viser les mêmes fichiers et le même projet que l'installation.
 - **Prise en compte** : au prochain lancement du script.
 - **Exemple (fictif)** : `COMPOSE="docker compose -f compose.yaml -f compose.override.yaml"`
@@ -651,7 +652,7 @@ Lues par le code, mais fixées par l'image, réservées à la construction, au d
 ### Variables sans effet sur Vaultia
 
 - `TZ` : non lue par Vaultia : le fuseau horaire se règle par Espace (Réglages).
-- `COMPOSE_PROJECT_NAME` : lue par Docker Compose (nom du projet, prioritaire sur `name:`), jamais par Vaultia. Utile pour installer deux instances sur une même machine.
+- `COMPOSE_PROJECT_NAME` : lue par Docker Compose (nom du projet, prioritaire sur `name:`) et par `scripts/export-ca.sh` (projet dont exporter l'autorité de Caddy), jamais par Vaultia. Utile pour installer deux instances sur une même machine.
 
 ### Variables refusées au démarrage
 
