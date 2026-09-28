@@ -5,7 +5,8 @@ Vaultia ne termine pas TLS lui-même. Il **exige HTTPS** partout, sauf sur la ma
 ([configuration.md § HTTP sur le réseau local](configuration.md#http-sur-le-réseau-local)). HTTPS
 reste recommandé : le mode hors ligne, la caméra du scanner et les cookies sécurisés en dépendent.
 Pour l'ouvrir au réseau local avec toutes ses fonctions, ou à Internet, placez-le derrière
-**votre** reverse proxy. Aucun proxy n'est imposé ni embarqué par cette distribution.
+**votre** reverse proxy. Aucun proxy n'est imposé par cette distribution ; pour un réseau local sans
+domaine, une surcouche Caddy facultative est fournie : [https.md](https.md).
 
 | Responsabilité | Qui |
 | --- | --- |

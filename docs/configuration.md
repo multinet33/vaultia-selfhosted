@@ -66,7 +66,8 @@ En HTTP sur le réseau local :
 - ne **jamais** rendre ce port joignable depuis Internet (aucune redirection de port sur la box) ;
 - Vaultia l'affiche au démarrage : `[config] BETTER_AUTH_URL en http sur une adresse privée …`.
 
-**HTTPS reste recommandé** pour bénéficier de toutes les fonctions ([reverse-proxy.md](reverse-proxy.md)).
+**HTTPS reste recommandé** pour bénéficier de toutes les fonctions : HTTPS local avec Caddy, sans
+domaine ([https.md](https.md)), ou votre reverse proxy ([reverse-proxy.md](reverse-proxy.md)).
 
 ### Exemple : réseau local
 
@@ -138,6 +139,9 @@ de Vaultia, contrôlé contre le code.
 | `VAULTIA_BIND_ADDRESS` | non | `127.0.0.1` | Compose |
 | `VAULTIA_PORT` | non | `3000` | Compose |
 | `VAULTIA_SUBNET` | non | `172.30.83.0/24` | Compose |
+| `VAULTIA_DOMAIN` | non | vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml`) | Compose |
+| `CADDY_HTTPS_PORT` | non | `443` | Compose |
+| `CADDY_IPV4_ADDRESS` | non | `172.30.83.10` | Compose |
 | `MEDIA_MAX_UPLOAD_BYTES` | non | `10000000` (10 Mo) | Vaultia |
 | `MEDIA_STORAGE_DIR` | non | `/var/lib/vaultia/media` (volume `media`) | Vaultia |
 | `INTELLIGENCE_PROVIDERS` | non | `zxing-barcode,tesseract-ocr,siglip2-vision,e5-embeddings,document-rules,open-facts` | Vaultia |
@@ -151,6 +155,7 @@ de Vaultia, contrôlé contre le code.
 | `WEBHOOK_ALLOW_PRIVATE_NETWORKS` | non | `false` | Vaultia |
 | `NOTIFICATIONS_CRON_SECRET` | non | vide : route désactivée (404) | Vaultia |
 | `VAULTIA_IMAGE` | non | image publique épinglée (version immuable et empreinte `sha256`) de la distribution | Compose |
+| `COMPOSE_FILE` | non | vide : `compose.yaml` seul | Compose |
 | `COMPOSE` | non | `docker compose` | scripts de l'hôte |
 
 ### Base de données
@@ -344,6 +349,59 @@ de Vaultia, contrôlé contre le code.
 - **Pourquoi ne pas la modifier** : l'adresse du proxy (`CADDY_IPV4_ADDRESS`) et `TRUSTED_PROXIES` doivent suivre.
 - **Prise en compte** : `docker compose down` puis `up -d` (le réseau est recréé ; les volumes restent).
 - **Exemple (fictif)** : `172.31.99.0/24`
+
+#### `VAULTIA_DOMAIN`
+
+- **Obligatoire** : non ; lue par : Compose.
+- **Défaut de l'application** : aucun : obligatoire avec la surcouche Caddy.
+- **Défaut de la distribution** : vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml`).
+- **Valeurs, format** : nom d'hôte.
+- **Rôle** : nom servi par Caddy ; doit être l'hôte de `BETTER_AUTH_URL`.
+- **Si absente** : sans surcouche Caddy : sans effet ; avec : Compose refuse de démarrer.
+- **Si invalide** : nom différent de `BETTER_AUTH_URL` : connexion refusée (origine).
+- **Pourquoi la modifier** : mise en place de HTTPS par Caddy.
+- **Pourquoi ne pas la modifier** : changer le nom exige de changer `BETTER_AUTH_URL` et, en local, le DNS et la confiance des appareils.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `vaultia.home.arpa`
+
+#### `CADDY_HTTPS_PORT`
+
+- **Obligatoire** : non ; lue par : Compose.
+- **Défaut de l'application** : `443`.
+- **Valeurs, format** : port TCP de l'hôte.
+- **Rôle** : port HTTPS publié par Caddy.
+- **Si absente** : `443`.
+- **Si invalide** : port occupé : Caddy ne démarre pas.
+- **Pourquoi la modifier** : port 443 déjà utilisé.
+- **Pourquoi ne pas la modifier** : un autre port doit figurer dans `BETTER_AUTH_URL` (`https://nom:8443`).
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `8443`
+
+#### `CADDY_IPV4_ADDRESS`
+
+- **Obligatoire** : non ; lue par : Compose.
+- **Défaut de l'application** : `172.30.83.10`.
+- **Valeurs, format** : adresse IPv4 dans `VAULTIA_SUBNET`.
+- **Rôle** : adresse fixe de Caddy sur le réseau interne : celle que Vaultia voit, donc celle de `TRUSTED_PROXIES`.
+- **Si absente** : `172.30.83.10`.
+- **Si invalide** : hors du sous-réseau : Compose refuse de démarrer.
+- **Pourquoi la modifier** : avec `VAULTIA_SUBNET`.
+- **Pourquoi ne pas la modifier** : `TRUSTED_PROXIES` doit suivre, sinon tous les clients partagent l'adresse du proxy.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `172.31.99.10`
+
+#### `COMPOSE_FILE`
+
+- **Obligatoire** : non ; lue par : Compose.
+- **Défaut de l'application** : vide : `compose.yaml` seul.
+- **Valeurs, format** : fichiers Compose séparés par `:`.
+- **Rôle** : active la surcouche HTTPS local (`compose.yaml:compose.https.yaml`) : Caddy, autorité locale, Vaultia joignable seulement par Caddy. Lue par Compose (et donc par `scripts/backup.sh`) depuis `.env`.
+- **Si absente** : installation standard : HTTP (boucle locale ou réseau local) ou reverse proxy existant.
+- **Si invalide** : fichier introuvable : Compose refuse de démarrer.
+- **Pourquoi la modifier** : HTTPS sur le réseau local sans domaine ni Internet (caméra du scanner, mode hors ligne, cookies `Secure`).
+- **Pourquoi ne pas la modifier** : exige un DNS local et l'installation du certificat racine public de Caddy sur chaque appareil.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `compose.yaml:compose.https.yaml`
 
 ### Fichiers et envois
 

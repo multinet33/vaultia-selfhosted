@@ -95,9 +95,12 @@ default).
 
 Two options:
 
-- **HTTPS (recommended, all features)**: put Vaultia behind your own reverse proxy (Caddy, nginx,
-  Traefik, Nginx Proxy Manager, Cloudflare Tunnel…) and set `BETTER_AUTH_URL` to the `https://`
-  address: see [docs/reverse-proxy.md](docs/reverse-proxy.md).
+- **HTTPS on your home network, no domain needed (all features)**: the optional Caddy overlay of
+  this repository with its own local certificate authority (`https://vaultia.home.arpa`): see
+  [docs/https.md](docs/https.md) (French).
+- **HTTPS behind your own reverse proxy or domain (all features)**: (Caddy, nginx, Traefik, Nginx
+  Proxy Manager, Cloudflare Tunnel…), set `BETTER_AUTH_URL` to the `https://` address: see
+  [docs/reverse-proxy.md](docs/reverse-proxy.md).
 - **Plain HTTP on your local network only**: use the server's private IPv4 address (10.x,
   172.16–31.x, 192.168.x). For example, if your server is `192.168.1.100` (an example, use yours):
 
@@ -192,9 +195,12 @@ Pour utiliser la vision locale dans un Espace : *Réglages › Vaultia Vision*, 
 
 Deux possibilités :
 
-- **HTTPS (recommandé, toutes les fonctions)** : placez Vaultia derrière votre reverse proxy
-  (Caddy, nginx, Traefik, Nginx Proxy Manager, Cloudflare Tunnel…) et mettez l'adresse `https://`
-  dans `BETTER_AUTH_URL` : voir [docs/reverse-proxy.md](docs/reverse-proxy.md).
+- **HTTPS à la maison, sans domaine (toutes les fonctions)** : la surcouche Caddy facultative de
+  ce dépôt, avec son autorité de certification locale (`https://vaultia.home.arpa`) : voir
+  [docs/https.md](docs/https.md).
+- **HTTPS derrière votre reverse proxy ou votre domaine (toutes les fonctions)** : (Caddy, nginx,
+  Traefik, Nginx Proxy Manager, Cloudflare Tunnel…), mettez l'adresse `https://` dans
+  `BETTER_AUTH_URL` : voir [docs/reverse-proxy.md](docs/reverse-proxy.md).
 - **HTTP simple, sur le réseau local seulement** : l'adresse IPv4 privée du serveur (10.x,
   172.16-31.x, 192.168.x). Par exemple, si votre serveur est `192.168.1.100` (un exemple, mettez
   la vôtre) :

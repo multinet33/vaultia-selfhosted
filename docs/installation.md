@@ -65,6 +65,7 @@ par défaut, décision de l'Espace).
 
 Par défaut, Vaultia n'est accessible que depuis la machine hôte (`127.0.0.1`). Deux possibilités :
 
+- **HTTPS local** avec la surcouche Caddy de ce dépôt, sans domaine : [https.md](https.md) ;
 - **HTTPS** derrière votre reverse proxy (recommandé, toutes les fonctions) : [reverse-proxy.md](reverse-proxy.md) ;
 - **HTTP sur l'adresse privée du serveur**, réseau local uniquement, sans chiffrement, sans mode
   hors ligne ni caméra du scanner : [configuration.md § HTTP sur le réseau local](configuration.md#http-sur-le-réseau-local),

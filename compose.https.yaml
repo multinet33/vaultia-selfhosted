@@ -1,0 +1,41 @@
+# HTTPS local, facultatif (docs/https.md) : Caddy termine TLS avec sa propre autorité locale
+# (`tls internal`), sans domaine Internet, sans Let's Encrypt, sans port ouvert sur la box.
+#
+# Activation, dans .env :
+#     COMPOSE_FILE=compose.yaml:compose.https.yaml
+#     VAULTIA_DOMAIN=vaultia.home.arpa             nom local, résolu par votre DNS local
+#     BETTER_AUTH_URL=https://vaultia.home.arpa    même nom (port inclus s'il n'est pas 443)
+#     TRUSTED_PROXIES=172.30.83.10                 adresse de Caddy ci-dessous
+# puis `docker compose up -d`. Sans ces lignes, rien ne change (HTTP LAN ou reverse proxy existant).
+#
+# Caddy publie seulement le port HTTPS : aucune écoute sur le port 80, donc aucune redirection
+# HTTP → HTTPS imposée. Vaultia n'est plus publié sur l'hôte : tout passe par Caddy.
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      vaultia:
+        condition: service_healthy
+    environment:
+      VAULTIA_DOMAIN: ${VAULTIA_DOMAIN:?VAULTIA_DOMAIN manquant dans .env (docs/https.md)}
+    ports:
+      - "${VAULTIA_BIND_ADDRESS:-127.0.0.1}:${CADDY_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./https.Caddyfile:/etc/caddy/Caddyfile:ro
+      # Autorité locale, certificats et état de Caddy : persistants. La clé privée de l'autorité y
+      # reste ; seul son certificat PUBLIC s'exporte (scripts/export-ca.sh).
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      vaultia:
+        ipv4_address: ${CADDY_IPV4_ADDRESS:-172.30.83.10}
+
+  vaultia:
+    # Plus aucun port publié : Vaultia n'est joignable qu'à travers Caddy (le contrôle de santé du
+    # conteneur, interne, ne change pas).
+    ports: !reset []
+
+volumes:
+  caddy-data:
+  caddy-config:

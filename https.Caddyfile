@@ -1,0 +1,29 @@
+# HTTPS local de Vaultia (compose.https.yaml, docs/https.md). Le nom servi vient de VAULTIA_DOMAIN.
+{
+	# Aucune écoute HTTP : pas de redirection imposée vers HTTPS.
+	auto_https disable_redirects
+}
+
+{$VAULTIA_DOMAIN}:443 {
+	# Autorité locale de Caddy : aucun appel à Internet ; les appareils doivent approuver sa racine.
+	tls internal
+
+	# Taille d'un envoi : au-dessus de la plus grande limite de Vaultia (archive de restauration,
+	# 2 Gio) ; chaque route applique ensuite sa propre limite.
+	request_body {
+		max_size 2100MiB
+	}
+
+	# Caddy remplace le X-Forwarded-For qu'un client enverrait et y met l'adresse réelle ;
+	# Vaultia ne le lit que parce que Caddy figure dans TRUSTED_PROXIES.
+	reverse_proxy vaultia:3000 {
+		transport http {
+			read_timeout 10m
+			write_timeout 10m
+		}
+	}
+
+	# HSTS : posé par Vaultia seulement si HSTS_MAX_AGE est défini (déconseillé avec une autorité
+	# locale, voir docs/https.md).
+	encode zstd gzip
+}
