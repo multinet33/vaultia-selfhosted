@@ -4,8 +4,38 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.2`** (actuel) | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
+| **`0.1.0-rc.4`** (actuel) | `b5398a0fee42e207d4746a72f97ba63ee5f95e7b` | `sha256:5d05ede91279656a53e82f2a91a7ceb1a4ec87a9641941f885442ec210f224c4` | documentation interactive de l'API servie par l'instance (`/api/docs`, [api.md](api.md)) ; version affichée en bas du menu et journal des versions ; aucune migration de base |
+| `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
+| `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.2 ou 0.1.0-rc.3 à 0.1.0-rc.4
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml`).
+3. `docker compose pull && docker compose up -d`.
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"vision":"ready"`, puis la version affichée en bas du menu : `v0.1.0-rc.4`.
+
+Migrations : `0.1.0-rc.3` en apporte deux (lignée des fiches, exemplaires prêtés), appliquées au
+démarrage ; `0.1.0-rc.4` n'en apporte aucune. Depuis `0.1.0-rc.2`, le démarrage applique donc
+les deux migrations de `0.1.0-rc.3`. Aucune variable n'est à ajouter.
+
+**Validé réellement** avant publication de `0.1.0-rc.4`, sur une installation `0.1.0-rc.3`
+représentative (image officielle, 3 comptes, 3 Espaces dont un membre EDITOR, objets avec
+exemplaires séparés et sortis, prêts, véhicules, documents du coffre Espace et PERSONAL, médias,
+valorisations, achats, dépenses, sinistres) : sauvegarde ALL avant la mise à jour
+(`storage_verify=ok`), 56 migrations et aucune en attente ; après la mise à jour, puis après
+`restart` et `down`/`up` : les 82 tables sont identiques, fichiers intacts (SHA-256), modèle de
+vision conservé, Vision READY, droits Espace et PERSONAL inchangés. Le passage `0.1.0-rc.2` →
+`0.1.0-rc.3` avait été validé de la même manière avant la publication de `0.1.0-rc.3` ; le passage
+direct `0.1.0-rc.2` → `0.1.0-rc.4` applique les mêmes migrations, sans migration supplémentaire,
+mais n'a pas été rejoué en une seule étape : la sauvegarde de l'étape 1 reste le point de retour.
+
+Limite connue de `0.1.0-rc.4` (KI-001) : après certaines suppressions confirmées dans un
+dialogue, le focus clavier peut revenir en haut de la page au lieu du titre de la section. La
+suppression est bien effectuée et annoncée ; aucune donnée n'est touchée.
 
 ## De 0.1.0-rc.1 à 0.1.0-rc.2
 

@@ -3,8 +3,8 @@
 **[English](#english) · [Français](#français)**
 
 > **PRE-RELEASE (beta, before 1.0) / PRÉ-VERSION (bêta, avant 1.0).**
-> This is a test *candidate* (`0.1.0-rc.2`), not a stable release. Keep backups and report issues.
-> Ceci est un *candidat* de test (`0.1.0-rc.2`), pas une version stable. Faites des sauvegardes et
+> This is a test *candidate* (`0.1.0-rc.4`), not a stable release. Keep backups and report issues.
+> Ceci est un *candidat* de test (`0.1.0-rc.4`), pas une version stable. Faites des sauvegardes et
 > signalez les problèmes.
 
 - [Installation tutorial (English)](#installation-tutorial-english)
@@ -16,6 +16,11 @@
 | --- | --- | --- |
 | Docker Compose (command line / ligne de commande) | [docs/docker_EN.md](docs/docker_EN.md) | [docs/docker.md](docs/docker.md) |
 | Portainer (stack from this repository / pile depuis ce dépôt) | [docs/portainer_EN.md](docs/portainer_EN.md) | [docs/portainer.md](docs/portainer.md) |
+
+**More / Plus** : [installation](docs/installation.md) · [update & Watchtower / mise à jour](docs/update.md) ·
+[API](docs/api.md) · [webhooks](docs/webhooks.md) (French / français). Every instance also serves its
+own interactive API documentation at `/api/docs` / Chaque instance sert aussi sa documentation
+interactive de l'API à l'adresse `/api/docs`.
 
 ---
 
@@ -298,8 +303,13 @@ Step-by-step installation, in English: [Docker Compose](docs/docker_EN.md) ·
 [Portainer](docs/portainer_EN.md). In French: [Docker Compose](docs/docker.md) · [Portainer](docs/portainer.md) ·
 [installation](docs/installation.md) · [configuration](docs/configuration.md) ·
 [storage](docs/storage.md) · [vision](docs/vision.md) · [reverse proxy](docs/reverse-proxy.md) ·
-[update](docs/update.md) · [backup & restore](docs/backup-restore.md) ·
+[update & Watchtower](docs/update.md) · [backup & restore](docs/backup-restore.md) ·
+[API](docs/api.md) · [webhooks](docs/webhooks.md) ·
 [troubleshooting](docs/troubleshooting.md) · [validation reports](docs/reports/)
+
+**API**: every instance serves its interactive API documentation at `/api/docs` (for example
+`https://vaultia.example/api/docs`) and the OpenAPI 3.1 contract at `/api/v1/openapi.json`; tokens
+are created in Settings › API access. Rules, scopes and examples: [docs/api.md](docs/api.md).
 
 ### License
 
@@ -401,7 +411,9 @@ préalable. Détail et risques :
 | [storage.md](docs/storage.md) | volumes : quoi, où, que se passe-t-il s'ils disparaissent |
 | [vision.md](docs/vision.md) | vision locale : modèle, installation, état, hors ligne |
 | [reverse-proxy.md](docs/reverse-proxy.md) | HTTPS, proxys, `TRUSTED_PROXIES` |
-| [update.md](docs/update.md) | mettre à jour, revenir en arrière (limites) |
+| [update.md](docs/update.md) | mettre à jour, revenir en arrière (limites), mises à jour automatiques (Watchtower) |
+| [api.md](docs/api.md) | API v1 : jetons, portées, erreurs, limites ; documentation interactive `/api/docs` de chaque instance |
+| [webhooks.md](docs/webhooks.md) | webhooks sortants : événements, signature, réseau local, exemple Home Assistant |
 | [backup-restore.md](docs/backup-restore.md) | sauvegarde, vérification, restauration |
 | [troubleshooting.md](docs/troubleshooting.md) | problèmes courants |
 | [reports/](docs/reports/) | rapports de validation de cette distribution |
