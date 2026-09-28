@@ -31,7 +31,7 @@ manquante. Les autres réglages ont des valeurs par défaut sûres ([configurati
     docker compose up -d
 
 Premier démarrage : téléchargement de l'image (~600 Mio compressés), création de la base,
-migrations, puis Vaultia démarre ; en parallèle, le modèle de la vision (90 Mio) s'installe.
+migrations, puis Vaultia démarre ; en parallèle, les modèles de la vision (≈ 230 Mio) s'installent.
 
     docker compose ps
 

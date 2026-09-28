@@ -3,8 +3,8 @@
 **[English](#english) · [Français](#français)**
 
 > **PRE-RELEASE (beta, before 1.0) / PRÉ-VERSION (bêta, avant 1.0).**
-> This is a test *candidate* (`0.1.0-rc.4`), not a stable release. Keep backups and report issues.
-> Ceci est un *candidat* de test (`0.1.0-rc.4`), pas une version stable. Faites des sauvegardes et
+> This is a test *candidate* (`0.1.0-rc.5`), not a stable release. Keep backups and report issues.
+> Ceci est un *candidat* de test (`0.1.0-rc.5`), pas une version stable. Faites des sauvegardes et
 > signalez les problèmes.
 
 - [Installation tutorial (English)](#installation-tutorial-english)
@@ -66,7 +66,7 @@ Keep a copy of `.env` somewhere safe: without it, backups cannot be fully restor
 
     docker compose up -d
 
-The first start downloads about 820 MB (application, database, Vision model).
+The first start downloads about 1 GB (application ≈ 650 MB, database ≈ 120 MB, the two local Vision models ≈ 230 MB).
 
 **5. Check that everything is running**
 
@@ -79,7 +79,7 @@ The first start downloads about 820 MB (application, database, Vision model).
     docker compose exec vaultia vaultia vision-status
     # last line: Vaultia Vision: READY
 
-`"vision":"provisioning"` means the Vision model is still downloading: Vaultia is already usable,
+`"vision":"provisioning"` means the Vision models are still downloading: Vaultia is already usable,
 the photo recognition becomes available a moment later (`docker compose logs vaultia | grep models`).
 
 **6. Create your account**
@@ -99,10 +99,10 @@ Two options:
   Traefik, Nginx Proxy Manager, Cloudflare Tunnel…) and set `BETTER_AUTH_URL` to the `https://`
   address: see [docs/reverse-proxy.md](docs/reverse-proxy.md).
 - **Plain HTTP on your local network only**: use the server's private IPv4 address (10.x,
-  172.16–31.x, 192.168.x). For example, if your server is `192.168.1.240` (an example, use yours):
+  172.16–31.x, 192.168.x). For example, if your server is `192.168.1.100` (an example, use yours):
 
-      BETTER_AUTH_URL=http://192.168.1.240:6080
-      VAULTIA_BIND_ADDRESS=192.168.1.240
+      BETTER_AUTH_URL=http://192.168.1.100:6080
+      VAULTIA_BIND_ADDRESS=192.168.1.100
       VAULTIA_PORT=6080
 
   Nothing is encrypted, and browser features that need a secure context are unavailable, notably
@@ -163,7 +163,7 @@ Gardez une copie de `.env` en lieu sûr : sans lui, une sauvegarde ne se restaur
 
     docker compose up -d
 
-Le premier démarrage télécharge environ 820 Mo (application, base de données, modèle de vision).
+Le premier démarrage télécharge environ 1 Go (application ≈ 650 Mo, base de données ≈ 120 Mo, les deux modèles de la vision locale ≈ 230 Mo).
 
 **5. Vérifier que tout fonctionne**
 
@@ -176,7 +176,7 @@ Le premier démarrage télécharge environ 820 Mo (application, base de données
     docker compose exec vaultia vaultia vision-status
     # dernière ligne : Vaultia Vision: READY
 
-`"vision":"provisioning"` : le modèle de vision se télécharge encore. Vaultia est déjà utilisable,
+`"vision":"provisioning"` : les modèles de vision se téléchargent encore. Vaultia est déjà utilisable,
 la reconnaissance en photo arrive un peu plus tard (`docker compose logs vaultia | grep models`).
 
 **6. Créer votre compte**
@@ -196,11 +196,11 @@ Deux possibilités :
   (Caddy, nginx, Traefik, Nginx Proxy Manager, Cloudflare Tunnel…) et mettez l'adresse `https://`
   dans `BETTER_AUTH_URL` : voir [docs/reverse-proxy.md](docs/reverse-proxy.md).
 - **HTTP simple, sur le réseau local seulement** : l'adresse IPv4 privée du serveur (10.x,
-  172.16-31.x, 192.168.x). Par exemple, si votre serveur est `192.168.1.240` (un exemple, mettez
+  172.16-31.x, 192.168.x). Par exemple, si votre serveur est `192.168.1.100` (un exemple, mettez
   la vôtre) :
 
-      BETTER_AUTH_URL=http://192.168.1.240:6080
-      VAULTIA_BIND_ADDRESS=192.168.1.240
+      BETTER_AUTH_URL=http://192.168.1.100:6080
+      VAULTIA_BIND_ADDRESS=192.168.1.100
       VAULTIA_PORT=6080
 
   Rien n'est chiffré, et les fonctions du navigateur qui exigent un contexte sécurisé sont
@@ -238,13 +238,13 @@ in French for now.
 
 - Linux `amd64` or `arm64` (or macOS / Windows with Docker Desktop);
 - Docker Engine 24+ with Compose v2;
-- ~4 GB of free disk space (image ~1.7 GB, model 90 MB, plus your data); 2 GB of RAM recommended;
-- Internet on first start (image and Vision model), optional afterwards;
+- ~4 GB of free disk space (image ~1.7 GB, Vision models ~230 MB, plus your data); 2 GB of RAM recommended;
+- Internet on first start (images and Vision models), optional afterwards;
 - `openssl` to generate the secrets.
 
 ### Local Vision
 
-On first start, Vaultia installs the Vision model (SigLIP 2, 90 MB) into the `models` volume, **in
+On first start, Vaultia installs the Vision models (SigLIP 2, 90 MB; E5, 130 MB) into the `models` volume, **in
 the background**: the application is usable right away. The model is checked (size and SHA-256)
 and never downloaded again (restart, update). Once installed, all analyses run **offline**; no
 photo or document is sent to an external service. Details: [docs/vision.md](docs/vision.md).
@@ -270,7 +270,7 @@ photo or document is sent to an external service. Details: [docs/vision.md](docs
 | --- | --- | --- |
 | `vaultia_postgres-data` | database (the whole inventory) | **yes** |
 | `vaultia_media` | photos, documents, files | **yes** |
-| `vaultia_models` | local Vision model | no (downloaded again if missing) |
+| `vaultia_models` | local Vision models | no (downloaded again if missing) |
 | `.env` (file) | configuration and secrets | **back it up separately** |
 
 Details: [docs/storage.md](docs/storage.md).
@@ -318,8 +318,8 @@ use: [PolyForm Noncommercial 1.0.0](LICENSE). Any commercial, professional, host
 embedded use requires a commercial license: [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md).
 
 Third-party components: the image ships their notices (`/app/THIRD-PARTY-NOTICES.md`). The Vision
-model is downloaded by your instance from its official source: see
-[docs/vision.md](docs/vision.md#licence-du-modèle).
+models are downloaded by your instance from their official sources: see
+[docs/vision.md](docs/vision.md#licences-des-modèles).
 
 ---
 
@@ -340,13 +340,13 @@ publiée sur GitHub Container Registry ; rien n'est compilé chez vous.
 
 - Linux `amd64` ou `arm64` (ou macOS / Windows avec Docker Desktop) ;
 - Docker Engine 24+ avec Compose v2 ;
-- ~4 Gio de disque libre (image ~1,7 Gio, modèle 90 Mio, plus vos données) ; 2 Gio de RAM conseillés ;
+- ~4 Gio de disque libre (image ~1,7 Gio, modèles de vision ~230 Mio, plus vos données) ; 2 Gio de RAM conseillés ;
 - Internet au premier démarrage (image et modèle de la vision), ensuite facultatif ;
 - `openssl` pour générer les secrets.
 
 ### Vision locale
 
-Au premier démarrage, Vaultia installe le modèle de la vision (SigLIP 2, 90 Mio) dans le volume
+Au premier démarrage, Vaultia installe les modèles de la vision (SigLIP 2, 90 Mio ; E5, 130 Mio) dans le volume
 `models`, **en arrière-plan** : l'application est utilisable immédiatement. Le modèle est vérifié
 (taille et SHA-256) et n'est jamais retéléchargé (redémarrage, mise à jour). Une fois installé,
 toutes les analyses fonctionnent **hors ligne** ; aucune photo ni aucun document n'est envoyé à un
@@ -425,6 +425,6 @@ libre au sens de l'OSI. Usage non commercial : [PolyForm Noncommercial 1.0.0](LI
 commercial, professionnel, en service hébergé (SaaS) ou intégré à un produit exige une licence
 commerciale : [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md).
 
-Composants tiers : l'image embarque ses avis de licence (`/app/THIRD-PARTY-NOTICES.md`). Le modèle
-de vision est téléchargé par votre instance depuis sa source officielle : voir
-[docs/vision.md § Licence du modèle](docs/vision.md#licence-du-modèle).
+Composants tiers : l'image embarque ses avis de licence (`/app/THIRD-PARTY-NOTICES.md`). Les modèles
+de vision sont téléchargés par votre instance depuis leur source officielle : voir
+[docs/vision.md § Licences des modèles](docs/vision.md#licences-des-modèles).

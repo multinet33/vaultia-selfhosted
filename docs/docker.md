@@ -3,9 +3,9 @@
 Guide complet en ligne de commande, de zéro à un Vaultia en service sur votre réseau local.
 Équivalent avec une interface web : [portainer.md](portainer.md).
 
-> **Pré-version (bêta, avant 1.0)** : Vaultia `0.1.0-rc.4`. Faites des sauvegardes.
+> **Pré-version (bêta, avant 1.0)** : Vaultia `0.1.0-rc.5`. Faites des sauvegardes.
 
-Dans tout ce guide, **`192.168.1.240` est un exemple** : remplacez-le par l'adresse IPv4 privée
+Dans tout ce guide, **`192.168.1.100` est un exemple** : remplacez-le par l'adresse IPv4 privée
 de **votre** serveur. Vaultia n'a aucune adresse par défaut de ce genre.
 
 ## 1. Prérequis
@@ -17,10 +17,10 @@ de **votre** serveur. Vaultia n'a aucune adresse par défaut de ce genre.
 | Compose | Docker Compose **v2** (commande `docker compose`, sans tiret) | `docker compose version` |
 | Git | pour récupérer la distribution et ses mises à jour | `git --version` |
 | OpenSSL | pour générer les secrets | `openssl version` |
-| Adresse du serveur | une adresse IPv4 **privée et stable** (réservation DHCP ou adresse fixe), par exemple `192.168.1.240` | `ip -4 addr` |
-| Disque | au moins **4 Gio libres** : ≈ 2,1 Go occupés avant vos données (image 1,7 Go, PostgreSQL 0,3 Go, modèle de vision 90 Mio) | `df -h` |
+| Adresse du serveur | une adresse IPv4 **privée et stable** (réservation DHCP ou adresse fixe), par exemple `192.168.1.100` | `ip -4 addr` |
+| Disque | au moins **4 Gio libres** : ≈ 2,2 Go occupés avant vos données (image 1,7 Go, PostgreSQL 0,3 Go, modèles de vision ≈ 230 Mio) | `df -h` |
 | Mémoire | 2 Gio conseillés | `free -h` |
-| Internet | au premier démarrage (≈ 820 Mo : images et modèle de vision), ensuite facultatif | — |
+| Internet | au premier démarrage (≈ 1 Go : images et les deux modèles de vision), ensuite facultatif | — |
 
 Docker non installé : <https://docs.docker.com/engine/install/>.
 
@@ -64,11 +64,11 @@ installation standard sur le réseau local, renseignez celles-ci.
     # --- Obligatoire
     POSTGRES_PASSWORD=<valeur générée par openssl rand -hex 24>
     BETTER_AUTH_SECRET=<valeur générée par openssl rand -base64 32>
-    BETTER_AUTH_URL=http://192.168.1.240:6080
+    BETTER_AUTH_URL=http://192.168.1.100:6080
 
     # --- Installation standard
     VAULTIA_SIGNUP_POLICY=first-user
-    VAULTIA_BIND_ADDRESS=192.168.1.240
+    VAULTIA_BIND_ADDRESS=192.168.1.100
     VAULTIA_PORT=6080
     POSTGRES_USER=vaultia
     POSTGRES_DB=vaultia
@@ -86,7 +86,7 @@ installation standard sur le réseau local, renseignez celles-ci.
     WEBHOOK_ALLOW_PRIVATE_NETWORKS=
     WEBHOOK_SECRET_KEY=
 
-Les `<…>` sont à remplacer par vos secrets ; `192.168.1.240` par l'adresse de votre serveur. En
+Les `<…>` sont à remplacer par vos secrets ; `192.168.1.100` par l'adresse de votre serveur. En
 partant de `.env.example`, il suffit de modifier `POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET`,
 `BETTER_AUTH_URL`, `VAULTIA_BIND_ADDRESS` et `VAULTIA_PORT` : les autres lignes ont déjà ces valeurs.
 
@@ -136,8 +136,8 @@ Facultatives (laisser vides) :
 | `TRUSTED_PROXIES` | adresse(s) du reverse proxy, derrière HTTPS ([reverse-proxy.md](reverse-proxy.md)) | aucun proxy |
 | `HSTS_MAX_AGE` | en-tête HSTS en secondes (HTTPS seulement) | aucun |
 | `VAULTIA_IMAGE` | autre image que celle épinglée (tests, ou canal `…:rc` / `…:stable` suivi par Watchtower : [update.md](update.md#mises-à-jour-automatiques-watchtower-facultatif)) | image épinglée de `compose.yaml` |
-| `INTELLIGENCE_PROVIDERS` | moteurs d'analyse installés | vision locale complète, sans service externe |
-| `INTELLIGENCE_MODELS_PROVISION` | installation automatique du modèle de vision : `auto` ou `off` | `auto` |
+| `INTELLIGENCE_PROVIDERS` | moteurs d'analyse installés | vision locale complète, recherche par le sens et `open-facts` (Internet, seulement pour un Espace en mode « externe ») ; voir [vision.md](vision.md) |
+| `INTELLIGENCE_MODELS_PROVISION` | installation automatique des modèles de vision : `auto` ou `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact envoyé aux bases produit ouvertes (avec `open-facts`) | vide |
 | `MEDIA_MAX_UPLOAD_BYTES` | taille maximale d'un envoi (1000 à 50000000 octets) | 10000000 |
 | `NOTIFICATIONS_CRON_SECRET` | active la route de rafraîchissement planifié des notifications (`openssl rand -hex 32`) | désactivée |
@@ -157,7 +157,7 @@ Pour voir l'image qui sera lancée :
 
     docker compose config --images
     # postgres:18-alpine
-    # ghcr.io/multinet33/vaultia:0.1.0-rc.4@sha256:5d05ede9…
+    # ghcr.io/multinet33/vaultia:0.1.0-rc.5@sha256:477d2f1d…
 
 ⚠ `docker compose config` **sans** option affiche toute la configuration **avec les secrets en
 clair** : ne collez jamais sa sortie dans un forum, un ticket ou un rapport public.
@@ -170,7 +170,7 @@ clair** : ne collez jamais sa sortie dans un forum, un ticket ou un rapport publ
 `pull` télécharge PostgreSQL et l'image Vaultia épinglée (≈ 610 Mio compressés). `up -d` crée le
 réseau et les trois volumes, démarre PostgreSQL (création de la base), puis Vaultia, qui contrôle
 sa configuration, applique les migrations de la base et démarre le serveur web. En parallèle,
-Vaultia installe le modèle de vision (90 Mio, vérifié par taille et SHA-256) : l'application est
+Vaultia installe les modèles de vision (SigLIP 2 90 Mio, E5 130 Mio, vérifiés par taille et SHA-256) : l'application est
 utilisable avant la fin de cette installation.
 
 ## 7. Vérifier
@@ -184,7 +184,7 @@ utilisable avant la fin de cette installation.
 
 Santé de l'application (votre adresse) :
 
-    curl http://192.168.1.240:6080/api/health
+    curl http://192.168.1.100:6080/api/health
     # {"status":"ok","database":"up","vision":"ready"}
 
 `"vision":"provisioning"` : le modèle s'installe encore ; `"failed"` : échec du téléchargement,
@@ -219,7 +219,7 @@ Fichiers stockés contre la base (utile après une restauration ou un incident) 
 
 ## 8. Premier accès
 
-Ouvrez **`http://192.168.1.240:6080`** (votre adresse) depuis un appareil du réseau local.
+Ouvrez **`http://192.168.1.100:6080`** (votre adresse) depuis un appareil du réseau local.
 
 Avec `VAULTIA_SIGNUP_POLICY=first-user` :
 
@@ -286,7 +286,7 @@ Au redémarrage, Vaultia applique seul les migrations de la base
 (`docker compose logs vaultia | grep migrations`). Ensuite :
 
     docker compose ps                                  # healthy
-    curl http://192.168.1.240:6080/api/health          # status ok, vision ready
+    curl http://192.168.1.100:6080/api/health          # status ok, vision ready
     docker compose exec vaultia vaultia vision-status  # Vaultia Vision: READY
     docker compose run --rm --no-deps vaultia storage-verify
 

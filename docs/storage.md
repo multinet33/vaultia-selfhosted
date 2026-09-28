@@ -7,7 +7,7 @@ volumes Docker et un fichier.
 | --- | --- | --- | --- | --- |
 | Base PostgreSQL : comptes, Espaces, propriétés, objets, véhicules, documents (métadonnées), valeurs, historique | `vaultia_postgres-data` | `/var/lib/postgresql` (postgres) | **oui** — `scripts/backup.sh` (`pg_dump`) | **perte de tout l'inventaire** ; seule une sauvegarde le rend |
 | Fichiers : photos, documents, miniatures, avatars, archives | `vaultia_media` | `/var/lib/vaultia/media` (vaultia) | **oui** — `scripts/backup.sh` (`tar`, vérifié par `storage-verify`) | **perte de tous les fichiers** ; la base les référence encore, `storage-verify` les signale manquants |
-| Modèle de la vision locale (SigLIP 2, 90 Mio) | `vaultia_models` | `/var/lib/vaultia/models` (vaultia) | **non** : artefact d'exécution | aucune donnée perdue : il est retéléchargé et revérifié au démarrage suivant (Internet requis une fois) |
+| Modèles de la vision locale (SigLIP 2 90 Mio, E5 130 Mio) | `vaultia_models` | `/var/lib/vaultia/models` (vaultia) | **non** : artefact d'exécution | aucune donnée perdue : il est retéléchargé et revérifié au démarrage suivant (Internet requis une fois) |
 | Configuration et secrets | fichier `.env` | — | **à part** (voir [backup-restore.md](backup-restore.md)) | sans `BETTER_AUTH_SECRET`, les sauvegardes restent restaurables mais sessions, liens de partage et secrets de webhooks sont perdus |
 
 Emplacement d'un volume sur le disque de l'hôte (Linux) :

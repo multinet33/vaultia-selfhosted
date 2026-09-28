@@ -37,8 +37,8 @@ services:
     # Image candidate épinglée par son empreinte (digest) : l'image lancée est exactement celle du
     # code source indiqué dans docs/update.md, même si le tag était déplacé. Une mise à jour est un
     # changement de cette ligne (git pull de ce dépôt), jamais un « latest » implicite.
-    # 0.1.0-rc.4 : source Vaultia b5398a0fee42e207d4746a72f97ba63ee5f95e7b (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.4@sha256:5d05ede91279656a53e82f2a91a7ceb1a4ec87a9641941f885442ec210f224c4}
+    # 0.1.0-rc.5 : source Vaultia 79985a6404b6994f41cc541c4b5e4b90d2a92655 (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.5@sha256:477d2f1d83cc039b843d27fec9e9c02b5823d013a3d613f9fd23a0cad95115e3}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -53,10 +53,14 @@ services:
       HSTS_MAX_AGE: ${HSTS_MAX_AGE:-}
       NOTIFICATIONS_CRON_SECRET: ${NOTIFICATIONS_CRON_SECRET:-}
       MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-}
-      # Bêta : vision locale complète (codes-barres, texte, image, documents). Aucun moteur externe.
-      INTELLIGENCE_PROVIDERS: ${INTELLIGENCE_PROVIDERS:-zxing-barcode,tesseract-ocr,siglip2-vision,document-rules}
+      # Moteurs installés (liste de l'image) : tous locaux, sauf open-facts (Internet), appelé
+      # seulement pour un Espace en mode « externe », jamais en mode local. Installé n'est pas
+      # autorisé : chaque Espace reste « désactivé » tant que son administrateur ne choisit pas.
+      INTELLIGENCE_PROVIDERS: ${INTELLIGENCE_PROVIDERS:-zxing-barcode,tesseract-ocr,siglip2-vision,e5-embeddings,document-rules,open-facts}
       INTELLIGENCE_MODELS_PROVISION: ${INTELLIGENCE_MODELS_PROVISION:-auto}
       INTELLIGENCE_CONTACT: ${INTELLIGENCE_CONTACT:-}
+      DOCUMENT_INDEXER: ${DOCUMENT_INDEXER:-}
+      TESSERACT_LANGS: ${TESSERACT_LANGS:-}
       WEBHOOK_ALLOW_PRIVATE_NETWORKS: ${WEBHOOK_ALLOW_PRIVATE_NETWORKS:-}
       WEBHOOK_SECRET_KEY: ${WEBHOOK_SECRET_KEY:-}
     volumes:

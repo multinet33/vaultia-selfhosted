@@ -3,9 +3,9 @@
 Guide complet, de zéro à un Vaultia en service sur votre réseau local, avec une pile (*stack*)
 Portainer construite depuis ce dépôt. Équivalent en ligne de commande : [docker.md](docker.md).
 
-> **Pré-version (bêta, avant 1.0)** : Vaultia `0.1.0-rc.4`. Faites des sauvegardes.
+> **Pré-version (bêta, avant 1.0)** : Vaultia `0.1.0-rc.5`. Faites des sauvegardes.
 
-Dans tout ce guide, **`192.168.1.240` est un exemple** : remplacez-le par l'adresse IPv4 privée
+Dans tout ce guide, **`192.168.1.100` est un exemple** : remplacez-le par l'adresse IPv4 privée
 de **votre** serveur. Vaultia n'a aucune adresse par défaut de ce genre.
 
 ## 1. Prérequis
@@ -15,10 +15,10 @@ de **votre** serveur. Vaultia n'a aucune adresse par défaut de ce genre.
 | Machine | Linux `amd64` ou `arm64` (l'image existe pour les deux) |
 | Docker | Docker Engine 24 ou plus récent, avec Compose v2 |
 | Portainer | Portainer (CE ou BE) qui gère ce Docker, avec l'accès aux *Stacks* |
-| Adresse du serveur | une adresse IPv4 **privée et stable** (réservation DHCP sur la box, ou adresse fixe), par exemple `192.168.1.240` |
-| Disque | au moins **4 Gio libres** : ≈ 2,1 Go occupés avant vos données (image Vaultia 1,7 Go, PostgreSQL 0,3 Go, modèle de vision 90 Mio), puis vos photos et documents |
+| Adresse du serveur | une adresse IPv4 **privée et stable** (réservation DHCP sur la box, ou adresse fixe), par exemple `192.168.1.100` |
+| Disque | au moins **4 Gio libres** : ≈ 2,2 Go occupés avant vos données (image Vaultia 1,7 Go, PostgreSQL 0,3 Go, modèles de vision ≈ 230 Mio), puis vos photos et documents |
 | Mémoire | 2 Gio conseillés (Vaultia ≈ 260 Mio au repos, ≈ 530 Mio pendant une analyse d'image) |
-| Internet | au premier démarrage (image et modèle de vision, ≈ 820 Mo) ; ensuite facultatif |
+| Internet | au premier démarrage (images et les deux modèles de vision, ≈ 1 Go) ; ensuite facultatif |
 | Un terminal sur le serveur | pour générer les secrets (ou sur n'importe quel poste avec `openssl`) et pour les sauvegardes |
 
 L'adresse doit rester la même : elle est inscrite dans la configuration (`BETTER_AUTH_URL`,
@@ -59,7 +59,7 @@ Dans Portainer : **Stacks › Add stack**.
 | GitOps updates | **désactivées** : les mises à jour restent une action explicite de votre part (§ 11) |
 
 La pile tire l'image **épinglée** dans `compose.yaml`
-(`ghcr.io/multinet33/vaultia:0.1.0-rc.4@sha256:5d05ede9…`) : aucune construction sur le serveur,
+(`ghcr.io/multinet33/vaultia:0.1.0-rc.5@sha256:477d2f1d…`) : aucune construction sur le serveur,
 aucun `latest`.
 
 ## 4. Variables d'environnement
@@ -76,16 +76,16 @@ cette liste qui fait foi.
     POSTGRES_PASSWORD=<valeur générée par openssl rand -hex 24>
 
     BETTER_AUTH_SECRET=<valeur générée par openssl rand -base64 32>
-    BETTER_AUTH_URL=http://192.168.1.240:6080
+    BETTER_AUTH_URL=http://192.168.1.100:6080
 
     VAULTIA_SIGNUP_POLICY=first-user
 
-    VAULTIA_BIND_ADDRESS=192.168.1.240
+    VAULTIA_BIND_ADDRESS=192.168.1.100
     VAULTIA_PORT=6080
 
     VAULTIA_SUBNET=172.30.83.0/24
 
-`192.168.1.240` : **exemple**, à remplacer par l'adresse de votre serveur.
+`192.168.1.100` : **exemple**, à remplacer par l'adresse de votre serveur.
 
 ### Les trois valeurs qui doivent concorder
 
@@ -135,8 +135,8 @@ Facultatives, à **laisser absentes** pour une installation standard :
 | `TRUSTED_PROXIES` | adresse(s) du reverse proxy, derrière HTTPS ([reverse-proxy.md](reverse-proxy.md)) | vide |
 | `HSTS_MAX_AGE` | en-tête HSTS, en secondes (HTTPS seulement) | vide (aucun) |
 | `VAULTIA_IMAGE` | autre image que celle épinglée (tests, ou canal `…:rc` / `…:stable` suivi par Watchtower : [update.md](update.md#mises-à-jour-automatiques-watchtower-facultatif)) | image épinglée de `compose.yaml` |
-| `INTELLIGENCE_PROVIDERS` | moteurs d'analyse installés | vision locale complète, sans service externe |
-| `INTELLIGENCE_MODELS_PROVISION` | installation automatique du modèle de vision : `auto` ou `off` | `auto` |
+| `INTELLIGENCE_PROVIDERS` | moteurs d'analyse installés | vision locale complète, recherche par le sens et `open-facts` (Internet, seulement pour un Espace en mode « externe ») ; voir [vision.md](vision.md) |
+| `INTELLIGENCE_MODELS_PROVISION` | installation automatique des modèles de vision : `auto` ou `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact envoyé aux bases produit ouvertes (seulement avec `open-facts`) | vide |
 | `MEDIA_MAX_UPLOAD_BYTES` | taille maximale d'un fichier envoyé (1000 à 50000000 octets) | 10000000 |
 | `NOTIFICATIONS_CRON_SECRET` | active la route de rafraîchissement planifié des notifications | vide (désactivée) |
@@ -156,7 +156,7 @@ Cliquez sur **Deploy the stack**. Portainer :
 4. démarre **PostgreSQL**, qui crée la base au premier démarrage, et attend qu'il soit sain ;
 5. démarre **Vaultia**, qui contrôle sa configuration, applique les **migrations** de la base,
    puis démarre le serveur web ;
-6. en parallèle, Vaultia installe le **modèle de vision** (90 Mio) dans le volume `models`, vérifié
+6. en parallèle, Vaultia installe les **modèles de vision** (SigLIP 2 90 Mio, E5 130 Mio) dans le volume `models`, vérifié
    par taille et SHA-256. L'application est utilisable avant la fin de cette installation ;
 7. Docker exécute ensuite le **contrôle de santé** de l'image (toutes les 30 s) : le conteneur passe
    à *healthy*.
@@ -196,7 +196,7 @@ Autres cas : [troubleshooting.md](troubleshooting.md).
 | `[vaultia][models] … installé et vérifié` puis `… Vaultia Vision prête` | premier démarrage : modèle de vision installé |
 | `[vaultia][models] … déjà présent et intègre` | démarrages suivants : rien n'est retéléchargé |
 
-**Santé** : ouvrez `http://192.168.1.240:6080/api/health` (votre adresse). Réponse attendue :
+**Santé** : ouvrez `http://192.168.1.100:6080/api/health` (votre adresse). Réponse attendue :
 
     {"status":"ok","database":"up","vision":"ready"}
 
@@ -213,7 +213,7 @@ inférence réelle réussie).
 
 ## 8. Premier accès
 
-Ouvrez **`http://192.168.1.240:6080`** (votre adresse) depuis un appareil du réseau local.
+Ouvrez **`http://192.168.1.100:6080`** (votre adresse) depuis un appareil du réseau local.
 
 Avec `VAULTIA_SIGNUP_POLICY=first-user` :
 
@@ -292,8 +292,8 @@ comprises, sans sauvegarde préalable. Moins prudent que la procédure ci-dessus
 
 La sauvegarde officielle est le script `scripts/backup.sh` de ce dépôt : base PostgreSQL complète
 (`pg_dump`) + tous les fichiers, vérifiés par `storage-verify`, avec empreintes SHA-256 et
-`MANIFEST`. Vaultia est arrêté quelques secondes pendant la copie. Le modèle de vision n'est pas
-sauvegardé (retéléchargeable).
+`MANIFEST`. Vaultia est arrêté quelques secondes pendant la copie. Les modèles de vision ne sont pas
+sauvegardés (retéléchargeables).
 
 Il se lance depuis un terminal sur le serveur, à partir d'un clone de ce dépôt qui pilote **la
 pile Portainer** :

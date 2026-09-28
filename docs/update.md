@@ -4,10 +4,53 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.4`** (actuel) | `b5398a0fee42e207d4746a72f97ba63ee5f95e7b` | `sha256:5d05ede91279656a53e82f2a91a7ceb1a4ec87a9641941f885442ec210f224c4` | documentation interactive de l'API servie par l'instance (`/api/docs`, [api.md](api.md)) ; version affichée en bas du menu et journal des versions ; aucune migration de base |
+| **`0.1.0-rc.5`** (actuel) | `79985a6404b6994f41cc541c4b5e4b90d2a92655` | `sha256:477d2f1d83cc039b843d27fec9e9c02b5823d013a3d613f9fd23a0cad95115e3` | rapports Propriété et Véhicule (écran et PDF) ; recherche par le sens, locale et facultative ; justificatif joint dès la création d'un achat ; parcours « Analyser un objet » plus clair ; corrections (patrimoine avec des valeurs inconnues, retour de la restauration d'un document, focus après une suppression — KI-001) ; une migration de base |
+| `0.1.0-rc.4` | `b5398a0fee42e207d4746a72f97ba63ee5f95e7b` | `sha256:5d05ede91279656a53e82f2a91a7ceb1a4ec87a9641941f885442ec210f224c4` | documentation interactive de l'API servie par l'instance (`/api/docs`, [api.md](api.md)) ; version affichée en bas du menu et journal des versions ; aucune migration de base |
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.4 à 0.1.0-rc.5
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml`, nouvelle liste de moteurs par défaut).
+3. `docker compose pull && docker compose up -d`.
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"vision":"ready"` (une fois le nouveau modèle installé), puis la version en bas du menu :
+   `v0.1.0-rc.5`.
+
+Ce qui change :
+
+- **Une migration de base**, appliquée au démarrage : l'index de la recherche par le sens (donnée
+  dérivée, construite en arrière-plan et reconstruite après une restauration).
+- **Moteurs par défaut** (`INTELLIGENCE_PROVIDERS` vide dans `.env`) : s'y ajoutent
+  `e5-embeddings` (recherche par le sens, **local**) et `open-facts` (bases produit ouvertes,
+  **Internet**, appelé seulement pour un Espace en mode « externe »). Au premier démarrage, le
+  modèle d'E5 (≈ 130 Mio) est téléchargé et vérifié ; `/api/health` dit `"vision":"provisioning"`
+  pendant ce temps, et Vaultia reste utilisable. Si votre `.env` fixe déjà une liste, elle est
+  conservée telle quelle : ajoutez-y `e5-embeddings` pour la recherche par le sens. Rien ne change
+  pour un Espace tant qu'il reste en mode « désactivé » (défaut) : voir [vision.md](vision.md).
+- **Variables facultatives nouvellement transmises** : `DOCUMENT_INDEXER` et `TESSERACT_LANGS`
+  (vides : mêmes valeurs qu'avant, `inline` et `fra+eng`), voir [configuration.md](configuration.md).
+- **KI-001 corrigé** : le focus clavier revient au titre de la section après une suppression
+  confirmée.
+
+**Validé réellement** avant et après la publication de `0.1.0-rc.5` :
+
+- installation `0.1.0-rc.4` représentative, avec l'image officielle : 2 comptes, 2 Espaces dont un
+  membre EDITOR, plusieurs propriétés (dont une sans valeur), objets avec exemplaires séparés,
+  sortis et prêtés, véhicule complet, achats et justificatifs, dépenses, travaux, sinistres,
+  valorisations, documents du coffre de l'Espace et PERSONAL avec fichiers ;
+- sauvegarde ALL avant la mise à jour (`storage_verify=ok`), puis mise à jour selon cette procédure ;
+- 57 migrations, aucune en attente ; les 81 tables d'avant sont identiques, plus la nouvelle table ;
+- fichiers intacts (SHA-256) ; nouveaux rapports disponibles ; droits Espace et PERSONAL inchangés ;
+- Vision READY avec une inférence réelle (SigLIP 2 et E5) ;
+- `restart` et `down`/`up` : état identique ; sauvegarde ALL après la mise à jour valide ;
+- l'image publiée, lancée par son digest sur cette installation, affiche `v0.1.0-rc.5`.
+
+Le passage direct depuis `0.1.0-rc.3` ou `0.1.0-rc.2` n'a **pas** été rejoué : il applique en plus
+les migrations de `0.1.0-rc.3`, et la sauvegarde de l'étape 1 reste le point de retour.
 
 ## De 0.1.0-rc.2 ou 0.1.0-rc.3 à 0.1.0-rc.4
 
