@@ -133,7 +133,8 @@ Dans le navigateur : connexion, caméra du scanner (autorisation demandée), `/a
   appareil qui n'a pas encore l'autorité n'est pas bloqué par une redirection.
 - Vaultia n'est plus joignable directement en HTTP : `BETTER_AUTH_URL` est en HTTPS, un seul point
   d'entrée. Pour revenir au scénario A, recommentez `COMPOSE_FILE`, remettez `BETTER_AUTH_URL` en
-  `http://…` et `TRUSTED_PROXIES` vide, puis `docker compose up -d` (les données ne bougent pas).
+  `http://…` et `TRUSTED_PROXIES` vide, puis `docker compose up -d --remove-orphans` (arrête Caddy ; les données
+  ne bougent pas, les volumes de Caddy restent pour un retour ultérieur).
 - **HSTS** : laissez `HSTS_MAX_AGE` vide avec une autorité locale. HSTS force le navigateur à refuser
   toute erreur de certificat pendant la durée indiquée : si l'autorité change (volume `caddy-data`
   perdu, réinstallation), les appareils ne pourraient plus ouvrir Vaultia avant l'expiration. Si
