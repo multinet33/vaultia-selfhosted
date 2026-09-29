@@ -37,8 +37,8 @@ services:
     # Image candidate épinglée par son empreinte (digest) : l'image lancée est exactement celle du
     # code source indiqué dans docs/update.md, même si le tag était déplacé. Une mise à jour est un
     # changement de cette ligne (git pull de ce dépôt), jamais un « latest » implicite.
-    # 0.1.0-rc.6 : source Vaultia 01e09a82831046044bfa154090fa6893830818be (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.6@sha256:993ee61cb5ab6ccfa2ac005e3156fd47c3c545cb802dc95afbb97b7a2fbcc048}
+    # 0.1.0-rc.7 : source Vaultia de61b83eb1bf39b9d8fd761c9c4c09623fbb34bc (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.7@sha256:158ace85c0caf16d14ba301f40fa1c8e19eaf74edf816e08ed802c568b88fcad}
     restart: unless-stopped
     depends_on:
       postgres:

@@ -443,7 +443,7 @@ de Vaultia, contrôlé contre le code.
 - **Obligatoire** : non ; lue par : Vaultia.
 - **Défaut de l'application** : vide : aucun moteur (capacités « À venir »).
 - **Défaut de la distribution** : `zxing-barcode,tesseract-ocr,siglip2-vision,e5-embeddings,document-rules,open-facts`.
-- **Valeurs, format** : liste ordonnée (préférence) parmi `zxing-barcode`, `tesseract-ocr`, `siglip2-vision`, `e5-embeddings`, `document-rules`, `open-facts` ; doublons ignorés.
+- **Valeurs, format** : liste ordonnée (préférence) parmi `zxing-barcode`, `tesseract-ocr`, `siglip2-vision`, `e5-embeddings`, `document-rules`, `open-facts`, `web-product-search` ; doublons ignorés.
 - **Rôle** : moteurs **installés**. Installé ne veut pas dire autorisé : chaque Espace choisit son mode (désactivé par défaut, local, externe). `open-facts` (Internet) n'est appelé qu'en mode externe, jamais en mode local.
 - **Si absente** : absente **ou vide** (`INTELLIGENCE_PROVIDERS=` de `.env.example`) : liste par défaut de la distribution. Aucun traitement n'a lieu tant qu'un Espace ne l'autorise : le mode de chaque Espace est « désactivé » par défaut. Pour ne rien installer, donner une liste réduite (voir l'exemple).
 - **Si invalide** : « INTELLIGENCE_PROVIDERS : moteur inconnu » : Vaultia ne démarre pas.
