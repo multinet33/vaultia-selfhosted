@@ -311,7 +311,7 @@ for you. Details and risks:
 Step-by-step installation, in English: [Docker Compose](docs/docker_EN.md) ·
 [Portainer](docs/portainer_EN.md). In French: [Docker Compose](docs/docker.md) · [Portainer](docs/portainer.md) ·
 [installation](docs/installation.md) · [configuration](docs/configuration.md) ·
-[storage](docs/storage.md) · [vision](docs/vision.md) · [reverse proxy](docs/reverse-proxy.md) ·
+[storage](docs/storage.md) · [vision](docs/vision.md) · [web product search](docs/web-product-search_EN.md) · [reverse proxy](docs/reverse-proxy.md) ·
 [update & Watchtower](docs/update.md) · [backup & restore](docs/backup-restore.md) ·
 [API](docs/api.md) · [webhooks](docs/webhooks.md) ·
 [troubleshooting](docs/troubleshooting.md) · [validation reports](docs/reports/)
@@ -420,6 +420,7 @@ préalable. Détail et risques :
 | [configuration.md](docs/configuration.md) | toutes les variables de `.env`, comptes, santé |
 | [storage.md](docs/storage.md) | volumes : quoi, où, que se passe-t-il s'ils disparaissent |
 | [vision.md](docs/vision.md) | vision locale : modèle, installation, état, hors ligne |
+| [web-product-search.md](docs/web-product-search.md) | recherche Web de codes produit (facultative) : SearXNG auto-hébergé ou Brave Search |
 | [reverse-proxy.md](docs/reverse-proxy.md) | HTTPS, proxys, `TRUSTED_PROXIES` |
 | [update.md](docs/update.md) | mettre à jour, revenir en arrière (limites), mises à jour automatiques (Watchtower) |
 | [api.md](docs/api.md) | API v1 : jetons, portées, erreurs, limites ; documentation interactive `/api/docs` de chaque instance |

@@ -39,6 +39,13 @@ cp "$work/test.env" "$work/stack.env"
 echo "COMPOSE_FILE=compose.yaml:compose.https.yaml" >> "$work/stack.env"
 docker compose -f compose.yaml --env-file "$work/stack.env" --project-name vaultia config --format json > "$work/portainer-compose-file.json"
 docker compose -f compose.portainer-https.yaml --env-file "$work/stack.env" --project-name vaultia config --format json > "$work/portainer-stack.json"
+# Recherche Web (profil web-search, docs/web-product-search.md), activé comme le ferait une variable
+# de pile Portainer : COMPOSE_PROFILES dans le fichier d'environnement.
+cp "$work/test.env" "$work/web.env"
+echo "COMPOSE_PROFILES=web-search" >> "$work/web.env"
+docker compose -f compose.yaml --env-file "$work/web.env" config --format json > "$work/http-web.json"
+docker compose -f compose.yaml -f compose.https.yaml --env-file "$work/web.env" config --format json > "$work/cli-web.json"
+docker compose -f compose.portainer-https.yaml --env-file "$work/web.env" --project-name vaultia config --format json > "$work/portainer-web.json"
 # Autre port HTTPS et image mobile : seules les valeurs attendues changent.
 CADDY_HTTPS_PORT=8443 VAULTIA_IMAGE=ghcr.io/multinet33/vaultia:rc render portainer-8443 -f compose.portainer-https.yaml
 
@@ -94,13 +101,38 @@ check(labels.get("com.centurylinklabs.watchtower.enable") == "true" and labels.g
       f"HTTPS Portainer : étiquettes Watchtower de Vaultia {labels}")
 check(":latest" not in portainer["services"]["vaultia"]["image"], "HTTPS Portainer : image latest")
 
+# Recherche Web : aucun service ni variable active sans le profil ; avec lui, SearXNG interne seulement.
+for label, config in (("HTTP", http), ("HTTPS CLI", cli), ("HTTPS Portainer", portainer)):
+    check("searxng" not in config["services"], f"{label} : SearXNG ne doit pas démarrer sans le profil web-search")
+    env = config["services"]["vaultia"]["environment"]
+    for name in ("WEB_PRODUCT_SEARCH_BACKEND", "WEB_PRODUCT_SEARCH_URL", "WEB_PRODUCT_SEARCH_API_KEY"):
+        check(env.get(name) == "", f"{label} : {name} doit être transmis, vide par défaut (trouvé {env.get(name)!r})")
+    check("web-product-search" not in env.get("INTELLIGENCE_PROVIDERS", ""), f"{label} : web-product-search ne doit pas être installé par défaut")
+web = {"HTTP web": load("http-web"), "HTTPS CLI web": load("cli-web"), "HTTPS Portainer web": load("portainer-web")}
+for label, config in web.items():
+    check("searxng" in config["services"], f"{label} : SearXNG absent avec le profil web-search")
+    if "searxng" not in config["services"]:
+        continue
+    searx = config["services"]["searxng"]
+    check("@sha256:" in searx["image"] and searx["image"].startswith("searxng/searxng:"), f"{label} : image SearXNG non figée {searx['image']}")
+    check(not searx.get("ports"), f"{label} : SearXNG ne doit publier aucun port")
+    check(searx["networks"]["vaultia"].get("ipv4_address") == "172.30.83.11", f"{label} : adresse fixe de SearXNG")
+    check(searx["environment"].get("SEARXNG_SECRET") == "", f"{label} : SEARXNG_SECRET vide par défaut (jamais dans Git)")
+    check(any(v["target"] == "/var/cache/searxng" and v["source"] == "searxng-cache" for v in searx["volumes"]), f"{label} : volume du cache SearXNG")
+    check(searx.get("configs") == [{"source": "searxng-settings", "target": "/etc/searxng/settings.yml"}], f"{label} : réglages SearXNG non montés")
+    settings = config["configs"]["searxng-settings"]["content"]
+    check("- json" in settings and "limiter: false" in settings, f"{label} : réglages SearXNG sans API JSON")
+    labels = searx.get("labels") or {}
+    check(not any(k.startswith("com.centurylinklabs.watchtower") for k in labels), f"{label} : SearXNG ne doit pas être étiqueté pour Watchtower")
+check(web["HTTPS CLI web"]["configs"]["searxng-settings"] == web["HTTPS Portainer web"]["configs"]["searxng-settings"], "DÉRIVE : réglages SearXNG CLI ≠ Portainer")
+
 # Anti-dérive : le fichier Portainer doit être la fusion CLI, au Caddyfile près.
 def normalize(config, embedded):
     config = copy.deepcopy(config)
     caddy = config["services"]["caddy"]
+    config.pop("configs", None)
     if embedded:
         check(caddy.pop("configs", None) == [{"source": "caddyfile", "target": "/etc/caddy/Caddyfile"}], "HTTPS Portainer : Caddyfile embarqué non monté sur /etc/caddy/Caddyfile")
-        config.pop("configs", None)
     else:
         mounts = [v for v in caddy["volumes"] if v["target"] == "/etc/caddy/Caddyfile"]
         check(len(mounts) == 1 and mounts[0]["source"].endswith("/https.Caddyfile") and mounts[0].get("read_only"), f"HTTPS CLI : montage du Caddyfile {mounts}")
@@ -114,7 +146,7 @@ def diff(a, b, path=""):
     elif a != b:
         yield f"{path or '.'} : {json.dumps(a, ensure_ascii=False)} ≠ {json.dumps(b, ensure_ascii=False)}"
 
-drift = list(diff(normalize(cli, False), normalize(portainer, True)))
+drift = list(diff(normalize(cli, False), normalize(portainer, True))) + list(diff(normalize(web["HTTPS CLI web"], False), normalize(web["HTTPS Portainer web"], True)))
 for line in drift:
     failures.append(f"DÉRIVE compose.portainer-https.yaml ≠ compose.yaml + compose.https.yaml : {line}")
 
@@ -136,5 +168,5 @@ if failures:
     for failure in failures:
         print(f"  - {failure}")
     sys.exit(1)
-print("[check-compose] OK : HTTP, HTTPS CLI et HTTPS Portainer cohérents ; aucune dérive.")
+print("[check-compose] OK : HTTP, HTTPS CLI et HTTPS Portainer cohérents, avec et sans recherche Web ; aucune dérive.")
 PY

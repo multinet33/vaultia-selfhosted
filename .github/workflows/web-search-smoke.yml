@@ -1,0 +1,84 @@
+# Recherche Web de codes produit (docs/web-product-search.md) : la distribution avec le profil
+# `web-search` (SearXNG) démarre saine, Vaultia joint l'API JSON de SearXNG sur le réseau interne,
+# une recherche d'EAN renvoie une réponse exploitable ; Brave sans clé est refusé proprement ; aucun
+# secret n'est fourni par la distribution. Aucune assertion sur le nom d'un produit : le Web change.
+name: Web search smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+    paths: [compose.yaml, compose.portainer-https.yaml, .env.example, .github/workflows/web-search-smoke.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Aucun secret fourni par la distribution
+        run: |
+          grep -qx 'WEB_PRODUCT_SEARCH_API_KEY=' .env.example
+          grep -qx 'SEARXNG_SECRET=' .env.example
+          grep -qx 'WEB_PRODUCT_SEARCH_BACKEND=' .env.example
+          grep -qx 'COMPOSE_PROFILES=' .env.example
+
+      - name: Configuration SearXNG (docs/web-product-search.md)
+        run: |
+          cp .env.example .env
+          chmod 600 .env
+          sed -i -e "s#^POSTGRES_PASSWORD=\$#POSTGRES_PASSWORD=$(openssl rand -hex 24)#" \
+                 -e "s#^BETTER_AUTH_SECRET=\$#BETTER_AUTH_SECRET=$(openssl rand -base64 32)#" \
+                 -e "s#^SEARXNG_SECRET=\$#SEARXNG_SECRET=$(openssl rand -hex 32)#" \
+                 -e "s#^COMPOSE_PROFILES=\$#COMPOSE_PROFILES=web-search#" \
+                 -e "s#^INTELLIGENCE_PROVIDERS=\$#INTELLIGENCE_PROVIDERS=zxing-barcode,tesseract-ocr,document-rules,open-facts,web-product-search#" \
+                 -e "s#^INTELLIGENCE_MODELS_PROVISION=\$#INTELLIGENCE_MODELS_PROVISION=off#" \
+                 -e "s#^WEB_PRODUCT_SEARCH_BACKEND=\$#WEB_PRODUCT_SEARCH_BACKEND=searxng#" \
+                 -e "s#^WEB_PRODUCT_SEARCH_URL=\$#WEB_PRODUCT_SEARCH_URL=http://172.30.83.11:8080#" .env
+          docker compose config --services | sort | tr '\n' ' '
+          docker compose config --services | grep -qx searxng
+
+      - name: Démarrage (SearXNG et Vaultia sains)
+        run: |
+          docker compose up -d
+          for i in $(seq 1 120); do
+            state="$(docker compose ps --format '{{.Service}}={{.Health}}' | sort | tr '\n' ' ')"
+            case "$state" in *"searxng=healthy"*"vaultia=healthy"*) break ;; esac
+            sleep 3
+          done
+          docker compose ps
+          echo "$state" | grep -q 'searxng=healthy'
+          echo "$state" | grep -q 'vaultia=healthy'
+          curl -fsS http://127.0.0.1:3000/api/health
+
+      - name: Vaultia joint l'API JSON de SearXNG ; recherche d'un EAN exploitable
+        run: |
+          docker compose exec -T vaultia node -e '
+            const url = `${process.env.WEB_PRODUCT_SEARCH_URL}/search?${new URLSearchParams({ q: "\"5702017567471\"", format: "json", safesearch: "1" })}`;
+            fetch(url, { redirect: "error", headers: { Accept: "application/json" } }).then(async (response) => {
+              if (!response.ok) throw new Error(`HTTP ${response.status}`);
+              const body = await response.json();
+              if (!Array.isArray(body.results)) throw new Error("réponse sans tableau results");
+              const citing = body.results.filter((r) => `${r.title} ${r.content ?? ""} ${r.url}`.includes("5702017567471")).length;
+              console.log(`résultats : ${body.results.length}, citant le code : ${citing}`);
+              if (!process.env.INTELLIGENCE_PROVIDERS.split(",").includes("web-product-search")) throw new Error("moteur non installé");
+            }).catch((error) => { console.error(error.message); process.exit(1); });'
+
+      - name: Brave sans clé refusé proprement
+        run: |
+          out="$(docker compose run --rm --no-deps -T -e WEB_PRODUCT_SEARCH_BACKEND=brave -e WEB_PRODUCT_SEARCH_URL= -e WEB_PRODUCT_SEARCH_API_KEY= vaultia check-config 2>&1 || true)"
+          echo "$out"
+          echo "$out" | grep -q 'WEB_PRODUCT_SEARCH_API_KEY doit contenir la clé'
+
+      - name: Journaux
+        if: always()
+        run: docker compose logs --tail 40 searxng vaultia
+
+      - name: Nettoyage
+        if: always()
+        run: docker compose down -v

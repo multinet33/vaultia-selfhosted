@@ -140,6 +140,7 @@ Optional, **leave them out** for a standard installation:
 | `HSTS_MAX_AGE` | HSTS header, in seconds (HTTPS only) | empty (none) |
 | `VAULTIA_IMAGE` | image other than the pinned one (testing, or the `…:rc` / `…:stable` channel tracked by Watchtower: [update.md](update.md#mises-à-jour-automatiques-watchtower-facultatif)) | pinned image from `compose.yaml` |
 | `INTELLIGENCE_PROVIDERS` | installed analysis engines | full local Vision, search by meaning, and `open-facts` (Internet, only for a workspace in “external” mode); see [vision.md](vision.md) |
+| `COMPOSE_PROFILES`, `WEB_PRODUCT_SEARCH_*`, `SEARXNG_SECRET` | web product code search (optional) | off; `COMPOSE_PROFILES=web-search` starts SearXNG in the stack; see [web-product-search_EN.md](web-product-search_EN.md) |
 | `INTELLIGENCE_MODELS_PROVISION` | automatic Vision models installation: `auto` or `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact sent to open product databases (only with `open-facts`) | empty |
 | `MEDIA_MAX_UPLOAD_BYTES` | maximum uploaded file size (1000 to 50000000 bytes) | 10000000 |

@@ -26,10 +26,17 @@ Ce qui change :
 
 - **Aucune migration de base**, aucun changement du stockage ni du format des sauvegardes.
 - **Aucune nouvelle variable** obligatoire, **aucun nouveau modèle** à télécharger.
-- La recherche Web de codes produit (`web-product-search`, facultative) existe dans l'image mais
-  n'est pas encore exposée par cette distribution : ses variables ne sont pas transmises par les
-  fichiers Compose. Sans elle, Vaultia fonctionne comme avant (inventaire, bases produit ouvertes,
-  saisie manuelle).
+- La recherche Web de codes produit (`web-product-search`, facultative, désactivée par défaut) est
+  configurable dans cette distribution depuis le correctif de distribution qui suit (SearXNG
+  auto-hébergé ou Brave Search) : voir [web-product-search.md](web-product-search.md). Sans elle,
+  Vaultia fonctionne comme avant (inventaire, bases produit ouvertes, saisie manuelle).
+
+### Correctif de distribution : recherche Web (même image 0.1.0-rc.7)
+
+Aucune nouvelle image : les fichiers Compose transmettent désormais `WEB_PRODUCT_SEARCH_BACKEND`,
+`WEB_PRODUCT_SEARCH_URL` et `WEB_PRODUCT_SEARCH_API_KEY` (vides par défaut), et proposent un service
+SearXNG facultatif (profil `web-search`). Une installation qui ne configure rien ne change pas :
+`git pull` puis redéploiement, ou rien du tout. Pour l'activer : [web-product-search.md](web-product-search.md).
 
 ## De 0.1.0-rc.5 à 0.1.0-rc.6
 

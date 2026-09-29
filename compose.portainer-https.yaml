@@ -65,6 +65,10 @@ services:
       TESSERACT_LANGS: ${TESSERACT_LANGS:-}
       WEBHOOK_ALLOW_PRIVATE_NETWORKS: ${WEBHOOK_ALLOW_PRIVATE_NETWORKS:-}
       WEBHOOK_SECRET_KEY: ${WEBHOOK_SECRET_KEY:-}
+      # Recherche Web de codes produit (facultative) : vides, Vaultia fonctionne comme avant.
+      WEB_PRODUCT_SEARCH_BACKEND: ${WEB_PRODUCT_SEARCH_BACKEND:-}
+      WEB_PRODUCT_SEARCH_URL: ${WEB_PRODUCT_SEARCH_URL:-}
+      WEB_PRODUCT_SEARCH_API_KEY: ${WEB_PRODUCT_SEARCH_API_KEY:-}
     volumes:
       - media:/var/lib/vaultia/media
       - models:/var/lib/vaultia/models
@@ -102,6 +106,39 @@ services:
       vaultia:
         ipv4_address: ${CADDY_IPV4_ADDRESS:-172.30.83.10}
 
+  # Recherche Web de codes produit (facultative, docs/web-product-search.md) : SearXNG, démarré
+  # seulement avec le profil `web-search` (COMPOSE_PROFILES=web-search, aussi comme variable de pile
+  # Portainer). Aucun port publié : joignable par Vaultia seul, sur le réseau interne, à une adresse
+  # FIXE — Vaultia 0.1.0-rc.7 n'accepte une URL http que vers une IPv4 privée (jamais un nom d'hôte),
+  # d'où WEB_PRODUCT_SEARCH_URL=http://172.30.83.11:8080. Image officielle, version et empreinte figées.
+  searxng:
+    image: searxng/searxng:2026.9.25-12f8b6515@sha256:5286edb35782454ab8a102c5eff6b54bff745853191b46aeead95f225aa6dfb6
+    profiles: ["web-search"]
+    restart: unless-stopped
+    # Refus explicite sans secret (SearXNG démarrerait sinon avec sa clé par défaut), puis le point
+    # d'entrée d'origine de l'image.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - '[ -n "$$SEARXNG_SECRET" ] || { echo "[searxng] SEARXNG_SECRET manquant (docs/web-product-search.md)" >&2; exit 1; }; exec /usr/local/searxng/entrypoint.sh'
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET:-}
+      SEARXNG_BASE_URL: http://${SEARXNG_IPV4_ADDRESS:-172.30.83.11}:8080/
+    configs:
+      - source: searxng-settings
+        target: /etc/searxng/settings.yml
+    volumes:
+      - searxng-cache:/var/cache/searxng
+    networks:
+      vaultia:
+        ipv4_address: ${SEARXNG_IPV4_ADDRESS:-172.30.83.11}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 # Copie exacte de https.Caddyfile (vérifiée par scripts/check-compose.sh). `$$` : le nom est lu par
 # Caddy dans son environnement, comme avec le fichier monté.
 configs:
@@ -137,12 +174,27 @@ configs:
       	encode zstd gzip
       }
 
+  # Réglages SearXNG (défauts du projet + API JSON, lue par Vaultia ; aucun limiteur : instance
+  # privée, sans Valkey). Embarqués ici : une pile Portainer ne peut pas monter ./settings.yml.
+  searxng-settings:
+    content: |
+      use_default_settings: true
+      server:
+        limiter: false
+        public_instance: false
+        image_proxy: false
+      search:
+        formats:
+          - html
+          - json
+
 volumes:
   postgres-data:
   media:
   models:
   caddy-data:
   caddy-config:
+  searxng-cache:
 
 networks:
   vaultia:

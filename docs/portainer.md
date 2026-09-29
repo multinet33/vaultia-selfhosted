@@ -140,6 +140,7 @@ Facultatives, à **laisser absentes** pour une installation standard :
 | `HSTS_MAX_AGE` | en-tête HSTS, en secondes (HTTPS seulement) | vide (aucun) |
 | `VAULTIA_IMAGE` | autre image que celle épinglée (tests, ou canal `…:rc` / `…:stable` suivi par Watchtower : [update.md](update.md#mises-à-jour-automatiques-watchtower-facultatif)) | image épinglée de `compose.yaml` |
 | `INTELLIGENCE_PROVIDERS` | moteurs d'analyse installés | vision locale complète, recherche par le sens et `open-facts` (Internet, seulement pour un Espace en mode « externe ») ; voir [vision.md](vision.md) |
+| `COMPOSE_PROFILES`, `WEB_PRODUCT_SEARCH_*`, `SEARXNG_SECRET` | recherche Web de codes produit (facultative) | désactivée ; `COMPOSE_PROFILES=web-search` démarre SearXNG dans la pile ; voir [web-product-search.md](web-product-search.md) |
 | `INTELLIGENCE_MODELS_PROVISION` | installation automatique des modèles de vision : `auto` ou `off` | `auto` |
 | `INTELLIGENCE_CONTACT` | contact envoyé aux bases produit ouvertes (seulement avec `open-facts`) | vide |
 | `MEDIA_MAX_UPLOAD_BYTES` | taille maximale d'un fichier envoyé (1000 à 50000000 octets) | 10000000 |
