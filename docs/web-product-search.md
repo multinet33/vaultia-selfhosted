@@ -94,10 +94,14 @@ navigateur, jamais dans Git). Clé absente ou invalide : Vaultia refuse de déma
 
 - `docker compose ps` : `searxng` et `vaultia` sont `healthy` (SearXNG).
 - **Réglages › Vaultia Vision** : « Données produit » est « Prête » en mode externe.
-- Scanner un code inconnu d'Open Products Facts : la revue propose une fiche dont la provenance est
-  « Recherche Web (SearXNG) » ou « Recherche Web (Brave Search) », avec ses sites sources.
-- Journaux : `docker compose logs vaultia | grep -A6 PRODUCT_LOOKUP` montre `open-facts`, puis
-  `web-product-search` (`SUCCEEDED`). Sans moteur Web, la cascade s'arrête sur `NO_PROVIDER`.
+- Scanner un code inconnu d'Open Products Facts : la revue propose une fiche marquée « Proposé par :
+  Base produit », avec ses sites sources (« D'après « site.example +2 » », « Fiches produit
+  consultées ») — l'écran ne distingue pas la base ouverte de la recherche Web.
+- **Journaux** (la preuve qui compte) : `docker compose logs vaultia | grep -A6 PRODUCT_LOOKUP`
+  montre `open-facts`, puis `providerId: 'web-product-search'` (`SUCCEEDED`). Sans moteur Web, la
+  cascade s'arrête sur `NO_PROVIDER`.
+- Limite de `0.1.0-rc.7` : une fiche Open Products Facts **vide** (code connu, sans nom) compte comme
+  trouvée ; la recherche Web n'est alors pas lancée pour ce code.
 
 ## Désactiver
 

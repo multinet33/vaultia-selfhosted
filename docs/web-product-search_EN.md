@@ -94,10 +94,14 @@ Git). Missing or invalid key: Vaultia refuses to start with
 
 - `docker compose ps`: `searxng` and `vaultia` are `healthy` (SearXNG).
 - **Settings › Vaultia Vision**: "Product data" is "Ready" in external mode.
-- Scan a code unknown to Open Products Facts: the review suggests a product whose provenance is
-  "Recherche Web (SearXNG)" or "Recherche Web (Brave Search)", with its source sites.
-- Logs: `docker compose logs vaultia | grep -A6 PRODUCT_LOOKUP` shows `open-facts`, then
-  `web-product-search` (`SUCCEEDED`). Without a web engine, the cascade stops on `NO_PROVIDER`.
+- Scan a code unknown to Open Products Facts: the review suggests a product marked "Suggested by:
+  Product database", with its source sites ("From « site.example +2 »", "Product records
+  consulted") — the screen does not tell the open database from the web search.
+- **Logs** (the proof that counts): `docker compose logs vaultia | grep -A6 PRODUCT_LOOKUP` shows
+  `open-facts`, then `providerId: 'web-product-search'` (`SUCCEEDED`). Without a web engine, the
+  cascade stops on `NO_PROVIDER`.
+- `0.1.0-rc.7` limitation: an **empty** Open Products Facts record (known code, no name) counts as
+  found; the web search is then not run for that code.
 
 ## Turn it off
 
