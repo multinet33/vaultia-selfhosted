@@ -4,11 +4,47 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.5`** (actuel) | `79985a6404b6994f41cc541c4b5e4b90d2a92655` | `sha256:477d2f1d83cc039b843d27fec9e9c02b5823d013a3d613f9fd23a0cad95115e3` | rapports Propriété et Véhicule (écran et PDF) ; recherche par le sens, locale et facultative ; justificatif joint dès la création d'un achat ; parcours « Analyser un objet » plus clair ; corrections (patrimoine avec des valeurs inconnues, retour de la restauration d'un document, focus après une suppression — KI-001) ; une migration de base |
+| **`0.1.0-rc.6`** (actuel) | `01e09a82831046044bfa154090fa6893830818be` | `sha256:993ee61cb5ab6ccfa2ac005e3156fd47c3c545cb802dc95afbb97b7a2fbcc048` | un code produit (EAN, UPC, référence fabricant) peut être porté par plusieurs exemplaires ; « Ajouter un nouvel exemplaire » prérempli ; « Analyser un objet » reconnaît un code déjà présent ; objet et achat enregistrés en une fois ; menu « Créer » réorganisé ; sources en désaccord signalées ; limite de fréquence de la recherche rapide ; une migration de base |
+| `0.1.0-rc.5` | `79985a6404b6994f41cc541c4b5e4b90d2a92655` | `sha256:477d2f1d83cc039b843d27fec9e9c02b5823d013a3d613f9fd23a0cad95115e3` | rapports Propriété et Véhicule (écran et PDF) ; recherche par le sens, locale et facultative ; justificatif joint dès la création d'un achat ; parcours « Analyser un objet » plus clair ; corrections (patrimoine avec des valeurs inconnues, retour de la restauration d'un document, focus après une suppression — KI-001) ; une migration de base |
 | `0.1.0-rc.4` | `b5398a0fee42e207d4746a72f97ba63ee5f95e7b` | `sha256:5d05ede91279656a53e82f2a91a7ceb1a4ec87a9641941f885442ec210f224c4` | documentation interactive de l'API servie par l'instance (`/api/docs`, [api.md](api.md)) ; version affichée en bas du menu et journal des versions ; aucune migration de base |
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.5 à 0.1.0-rc.6
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`. Cette sauvegarde est le
+   seul retour possible vers `0.1.0-rc.5` une fois que plusieurs objets partagent un code produit
+   (`0.1.0-rc.5` refuse ces doublons).
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml` et de `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.6`.
+
+Ce qui change :
+
+- **Une migration de base**, appliquée au démarrage et **non destructive** : seule la règle
+  d'unicité des codes produit (EAN, UPC, GTIN, référence fabricant) est assouplie ; aucune donnée
+  n'est modifiée. Le numéro de série et le QR Vaultia restent uniques.
+- **Aucune nouvelle variable** de configuration, **aucun nouveau modèle** à télécharger.
+- Les sauvegardes d'Espace gardent le format v3 ; leur restauration accepte désormais des
+  exemplaires qui partagent un code produit.
+
+**Validé réellement** avant la publication de `0.1.0-rc.6`, avec l'image construite comme
+l'image officielle (même source, même version embarquée) :
+
+- installation `0.1.0-rc.5` représentative, avec l'image officielle `0.1.0-rc.5` ;
+- sauvegarde ALL avant la mise à jour (`storage_verify=ok`), puis mise à jour ;
+- 58 migrations, aucune en attente ; seule la table des migrations change (une ligne de plus),
+  toutes les autres tables sont identiques ;
+- fichiers intacts (SHA-256) ; Vision READY ; version affichée `v0.1.0-rc.6` ;
+- `restart` et `down`/`up` : état identique ; sauvegarde ALL après la mise à jour valide.
+
+Après la publication, une installation Portainer réelle (arm64, HTTPS local avec Caddy) a été mise
+à jour par « Pull and redeploy » : volumes conservés, données identiques (seule la table des
+migrations change), fichiers identiques (SHA-256), `v0.1.0-rc.6` affichée, redémarrage sans perte.
 
 ## De 0.1.0-rc.4 à 0.1.0-rc.5
 

@@ -139,7 +139,7 @@ de Vaultia, contrôlé contre le code.
 | `VAULTIA_BIND_ADDRESS` | non | `127.0.0.1` | Compose |
 | `VAULTIA_PORT` | non | `3000` | Compose |
 | `VAULTIA_SUBNET` | non | `172.30.83.0/24` | Compose |
-| `VAULTIA_DOMAIN` | non | vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml` ou `compose.portainer-https.yaml`) | Compose |
+| `VAULTIA_DOMAIN` | non | vide ; exemple de `.env.example` : `vaultia.home.arpa` (HTTPS local, `compose.https.yaml` ou, pile Portainer, `compose.portainer-https.yaml`) | Compose |
 | `CADDY_HTTPS_PORT` | non | `443` | Compose |
 | `CADDY_IPV4_ADDRESS` | non | `172.30.83.10` | Compose |
 | `MEDIA_MAX_UPLOAD_BYTES` | non | `10000000` (10 Mo) | Vaultia |
