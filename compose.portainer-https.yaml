@@ -42,8 +42,8 @@ services:
 
   vaultia:
     # Même image épinglée que compose.yaml (voir ses commentaires et docs/update.md).
-    # 0.1.0-rc.7 : source Vaultia de61b83eb1bf39b9d8fd761c9c4c09623fbb34bc (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.7@sha256:158ace85c0caf16d14ba301f40fa1c8e19eaf74edf816e08ed802c568b88fcad}
+    # 0.1.0-rc.8 : source Vaultia dc69e0b09fc14841128ff86f4a31877d4468a7f2 (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.8@sha256:2a69f47c63f2b9d853fdbd3ece73d43d7cc228749c53ddb3490396ef11cdab48}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -109,7 +109,7 @@ services:
   # Recherche Web de codes produit (facultative, docs/web-product-search.md) : SearXNG, démarré
   # seulement avec le profil `web-search` (COMPOSE_PROFILES=web-search, aussi comme variable de pile
   # Portainer). Aucun port publié : joignable par Vaultia seul, sur le réseau interne, à une adresse
-  # FIXE — Vaultia 0.1.0-rc.7 n'accepte une URL http que vers une IPv4 privée (jamais un nom d'hôte),
+  # FIXE — Vaultia (depuis 0.1.0-rc.7) n'accepte une URL http que vers une IPv4 privée (jamais un nom d'hôte),
   # d'où WEB_PRODUCT_SEARCH_URL=http://172.30.83.11:8080. Image officielle, version et empreinte figées.
   searxng:
     image: searxng/searxng:2026.9.25-12f8b6515@sha256:5286edb35782454ab8a102c5eff6b54bff745853191b46aeead95f225aa6dfb6

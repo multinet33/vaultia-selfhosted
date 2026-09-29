@@ -4,7 +4,7 @@ A complete guide, from scratch to a running Vaultia on your local network, using
 stack built from this repository. Command-line equivalent: [docker_EN.md](docker_EN.md).
 Version française : [portainer.md](portainer.md).
 
-> **Pre-release (beta, before 1.0)**: Vaultia `0.1.0-rc.7`. Keep backups.
+> **Pre-release (beta, before 1.0)**: Vaultia `0.1.0-rc.8`. Keep backups.
 
 Throughout this guide, **`192.168.1.100` is an example**: replace it with the private IPv4
 address of **your** server. Vaultia has no default address of this kind.
@@ -65,7 +65,7 @@ Local HTTPS with Caddy (optional): Compose path `compose.portainer-https.yaml` a
 variables, see § 13. This choice is made when the stack is created; for an existing stack, § 13.2.
 
 The stack pulls the image **pinned** in `compose.yaml`
-(`ghcr.io/multinet33/vaultia:0.1.0-rc.7@sha256:158ace85…`): nothing is built on the server, no
+(`ghcr.io/multinet33/vaultia:0.1.0-rc.8@sha256:2a69f47c…`): nothing is built on the server, no
 `latest`.
 
 ## 4. Environment variables
