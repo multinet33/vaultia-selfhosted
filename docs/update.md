@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.8`** (actuel) | `dc69e0b09fc14841128ff86f4a31877d4468a7f2` | `sha256:2a69f47c63f2b9d853fdbd3ece73d43d7cc228749c53ddb3490396ef11cdab48` | une fiche Open Facts vide ne bloque plus la recherche Web ; meilleurs noms de produits issus du Web (titres de sites et d'outils écartés, concordance des sources, site de la marque) ; provenance « Recherche Web » visible à la revue ; aucune migration de base |
+| **`0.1.0-rc.9`** (actuel) | `79746e318ca7bec6f9637743a4875722cc8b9459` | `sha256:b8e7048cdbdd552d7c8e239f464345c2f4fb1b99a69220a18de75109b0a2451e` | un objet s'ajoute en une fois avec son achat, sa garantie, son justificatif, son code produit et son numéro de série ; travaux et véhicules : une dépense porte son justificatif, une intervention enregistre son coût et sa facture en une saisie ; objet affecté à un véhicule (lien sans effet financier) ; un fichier déjà enregistré justifie une autre dépense ; **deux migrations de base** ; **sauvegardes d'Espace au format 4** |
+| `0.1.0-rc.8` | `dc69e0b09fc14841128ff86f4a31877d4468a7f2` | `sha256:2a69f47c63f2b9d853fdbd3ece73d43d7cc228749c53ddb3490396ef11cdab48` | une fiche Open Facts vide ne bloque plus la recherche Web ; meilleurs noms de produits issus du Web (titres de sites et d'outils écartés, concordance des sources, site de la marque) ; provenance « Recherche Web » visible à la revue ; aucune migration de base |
 | `0.1.0-rc.7` | `de61b83eb1bf39b9d8fd761c9c4c09623fbb34bc` | `sha256:158ace85c0caf16d14ba301f40fa1c8e19eaf74edf816e08ed802c568b88fcad` | créer un objet depuis le lien d'équipement d'une intervention ; banderole rouge sur les objets sortis ; un objet sorti compte 0 dans le patrimoine actuel ; coût historique, produits de cession et coût net (rapports Finances et Propriété) ; dépenses directes des travaux ; correction de l'identification visuelle (sous-catégories) ; aucune migration de base |
 | `0.1.0-rc.6` | `01e09a82831046044bfa154090fa6893830818be` | `sha256:993ee61cb5ab6ccfa2ac005e3156fd47c3c545cb802dc95afbb97b7a2fbcc048` | un code produit (EAN, UPC, référence fabricant) peut être porté par plusieurs exemplaires ; « Ajouter un nouvel exemplaire » prérempli ; « Analyser un objet » reconnaît un code déjà présent ; objet et achat enregistrés en une fois ; menu « Créer » réorganisé ; sources en désaccord signalées ; limite de fréquence de la recherche rapide ; une migration de base |
 | `0.1.0-rc.5` | `79985a6404b6994f41cc541c4b5e4b90d2a92655` | `sha256:477d2f1d83cc039b843d27fec9e9c02b5823d013a3d613f9fd23a0cad95115e3` | rapports Propriété et Véhicule (écran et PDF) ; recherche par le sens, locale et facultative ; justificatif joint dès la création d'un achat ; parcours « Analyser un objet » plus clair ; corrections (patrimoine avec des valeurs inconnues, retour de la restauration d'un document, focus après une suppression — KI-001) ; une migration de base |
@@ -12,6 +13,36 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.8 à 0.1.0-rc.9
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`. Cette sauvegarde est le seul
+   retour possible vers `0.1.0-rc.8` : les migrations de `0.1.0-rc.9` ne se défont pas, et une
+   sauvegarde faite en `0.1.0-rc.9` ne se restaure pas dans une version antérieure.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml` et de `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.9`.
+
+Ce qui change :
+
+- **Deux migrations de base**, appliquées automatiquement au démarrage (`prisma migrate deploy`) :
+  dépôts temporaires de justificatifs (`20260930080000_add_staged_attachments`) et justificatifs
+  des dépenses de véhicule (`20260930120000_add_vehicle_expense_documents`). Aucune donnée
+  existante n'est transformée ; le démarrage prend quelques secondes de plus une seule fois.
+- **Sauvegardes d'Espace (ZIP) au format 4** : celles des versions précédentes (formats 1 à 3) se
+  restaurent toujours ; une sauvegarde d'Espace faite en `0.1.0-rc.9` exige `0.1.0-rc.9` ou plus
+  récent. Le Backup ALL (`scripts/backup.sh`) garde son mécanisme ; comme toujours, il se restaure sur
+  une version égale ou plus récente.
+- **Aucune variable** nouvelle ou modifiée, **aucun nouveau modèle** à télécharger ; la recherche
+  Web configurée (SearXNG ou Brave, [web-product-search.md](web-product-search.md)) est conservée
+  telle quelle.
+- Mise à jour vérifiée avant publication sur une copie de cette distribution, avec des données
+  créées par `0.1.0-rc.8` (comptes, Espaces, objets, achats, garanties, travaux, véhicule, coffre
+  et documents PERSONAL) : données et fichiers identiques après la mise à jour, redémarrages sans
+  écart, sauvegarde puis restauration identiques.
 
 ## De 0.1.0-rc.7 à 0.1.0-rc.8
 
