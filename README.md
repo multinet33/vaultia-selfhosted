@@ -3,8 +3,8 @@
 **[English](#english) · [Français](#français)**
 
 > **PRE-RELEASE (beta, before 1.0) / PRÉ-VERSION (bêta, avant 1.0).**
-> This is a test *candidate* (`0.1.0-rc.9`), not a stable release. Keep backups and report issues.
-> Ceci est un *candidat* de test (`0.1.0-rc.9`), pas une version stable. Faites des sauvegardes et
+> This is a test *candidate* (`0.1.0-rc.12`), not a stable release. Keep backups and report issues.
+> Ceci est un *candidat* de test (`0.1.0-rc.12`), pas une version stable. Faites des sauvegardes et
 > signalez les problèmes.
 
 - [Installation tutorial (English)](#installation-tutorial-english)

@@ -4,7 +4,10 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.9`** (actuel) | `79746e318ca7bec6f9637743a4875722cc8b9459` | `sha256:b8e7048cdbdd552d7c8e239f464345c2f4fb1b99a69220a18de75109b0a2451e` | un objet s'ajoute en une fois avec son achat, sa garantie, son justificatif, son code produit et son numéro de série ; travaux et véhicules : une dépense porte son justificatif, une intervention enregistre son coût et sa facture en une saisie ; objet affecté à un véhicule (lien sans effet financier) ; un fichier déjà enregistré justifie une autre dépense ; **deux migrations de base** ; **sauvegardes d'Espace au format 4** |
+| **`0.1.0-rc.12`** (actuel) | `3c4a40154595812fa67d2fad2600bf5ed1757e2a` | `sha256:391b174d5ba145fa4aa0d54d5aa60688b377334be385b2700af183510a9ea557` | justificatifs des dépenses directes d'une propriété visibles et administrables ; Propriété › Valeur : dépenses de travaux, dépenses directes et total (chaque dépense une fois) ; carnet de vie : « Ouvrir la fiche d'origine » vers la vraie source, rubrique Documents sans les factures d'achat de l'inventaire ; Travaux : interventions hors projet sans doublon ; rubrique « Champs de la catégorie » masquée si vide ; une fenêtre rouverte aussitôt ne se referme plus ; aucune migration de base |
+| `0.1.0-rc.11` | `4ef6651f806e496b4a24d24eb7108aef33cdfa34` | `sha256:bb00ce2da8260895a79d648a02090c785483fff540f16a75e51740552d7e72fb` | référentiel des tiers (vendeurs, artisans, garages, assureurs, emprunteurs…) ; justificatifs des dépenses de véhicule, de travaux et du carnet ouverts dans l'aperçu intégré ; **une migration de base** (rattachement des noms identiques) ; **sauvegardes d'Espace au format 6** |
+| `0.1.0-rc.10` | `52f4bddee8d5cfd317c14b620e7a878a8d5bf912` | `sha256:c3f274615126a9013228533ceeea7e75c580833e71cbe917d104921a39065c51` | carnet de vie d'une propriété ou d'un véhicule ; événements saisis dans le carnet ; glisser-déposer des fichiers ; **une migration de base** ; **sauvegardes d'Espace au format 5** |
+| `0.1.0-rc.9` | `79746e318ca7bec6f9637743a4875722cc8b9459` | `sha256:b8e7048cdbdd552d7c8e239f464345c2f4fb1b99a69220a18de75109b0a2451e` | un objet s'ajoute en une fois avec son achat, sa garantie, son justificatif, son code produit et son numéro de série ; travaux et véhicules : une dépense porte son justificatif, une intervention enregistre son coût et sa facture en une saisie ; objet affecté à un véhicule (lien sans effet financier) ; un fichier déjà enregistré justifie une autre dépense ; **deux migrations de base** ; **sauvegardes d'Espace au format 4** |
 | `0.1.0-rc.8` | `dc69e0b09fc14841128ff86f4a31877d4468a7f2` | `sha256:2a69f47c63f2b9d853fdbd3ece73d43d7cc228749c53ddb3490396ef11cdab48` | une fiche Open Facts vide ne bloque plus la recherche Web ; meilleurs noms de produits issus du Web (titres de sites et d'outils écartés, concordance des sources, site de la marque) ; provenance « Recherche Web » visible à la revue ; aucune migration de base |
 | `0.1.0-rc.7` | `de61b83eb1bf39b9d8fd761c9c4c09623fbb34bc` | `sha256:158ace85c0caf16d14ba301f40fa1c8e19eaf74edf816e08ed802c568b88fcad` | créer un objet depuis le lien d'équipement d'une intervention ; banderole rouge sur les objets sortis ; un objet sorti compte 0 dans le patrimoine actuel ; coût historique, produits de cession et coût net (rapports Finances et Propriété) ; dépenses directes des travaux ; correction de l'identification visuelle (sous-catégories) ; aucune migration de base |
 | `0.1.0-rc.6` | `01e09a82831046044bfa154090fa6893830818be` | `sha256:993ee61cb5ab6ccfa2ac005e3156fd47c3c545cb802dc95afbb97b7a2fbcc048` | un code produit (EAN, UPC, référence fabricant) peut être porté par plusieurs exemplaires ; « Ajouter un nouvel exemplaire » prérempli ; « Analyser un objet » reconnaît un code déjà présent ; objet et achat enregistrés en une fois ; menu « Créer » réorganisé ; sources en désaccord signalées ; limite de fréquence de la recherche rapide ; une migration de base |
@@ -13,6 +16,36 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.9, rc.10 ou rc.11 à 0.1.0-rc.12
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`. **Faites-le avant de tirer
+   la nouvelle image** : `backup.sh` redémarre Vaultia en fin de sauvegarde, et un redémarrage
+   démarre l'image déjà tirée. Cette sauvegarde est le seul retour possible vers votre version
+   actuelle : les migrations ne se défont pas.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml` et de `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.12`.
+
+Ce qui change selon votre point de départ :
+
+- **Depuis `0.1.0-rc.11`** : aucune migration de base, aucune variable, format de sauvegarde 6
+  inchangé.
+- **Depuis `0.1.0-rc.10`** : une migration, appliquée automatiquement au démarrage :
+  `20261001120000_add_parties` (référentiel des tiers ; les noms déjà saisis identiques à la casse,
+  aux accents et à la ponctuation près sont rattachés à une même fiche, aucun libellé n'est modifié,
+  rien n'est rapproché par simple ressemblance). Sauvegardes d'Espace au format 6.
+- **Depuis `0.1.0-rc.9`** : en plus, `20261001090000_add_lifebook_events` (événements du carnet de
+  vie). Sauvegardes d'Espace au format 6 ; celles des formats 1 à 5 se restaurent toujours.
+- **Aucune variable** nouvelle ou modifiée, **aucun nouveau modèle** à télécharger.
+- Mise à jour vérifiée avant publication sur une copie de cette distribution, avec des données
+  créées par `0.1.0-rc.11` (comptes, Espaces, objets, achats, garanties, travaux, dépenses directes
+  avec justificatif, véhicule, carnet, coffre et documents PERSONAL, tiers) : aucune migration,
+  données et fichiers identiques après la mise à jour, redémarrages sans écart, sauvegarde puis
+  restauration identiques, installation vierge et fonctionnement hors ligne.
 
 ## De 0.1.0-rc.8 à 0.1.0-rc.9
 
@@ -383,6 +416,12 @@ suivie est plus récente que l'image épinglée et a appliqué des migrations, a
 épingle une version au moins aussi récente.
 
 ### Sécurité des mises à jour en modes B et C — à lire avant d'activer
+
+**Publier n'est pas déployer.** En mode B, chaque nouveau candidat publié sur le canal `rc` est
+installé sans décision de votre part. Pour une instance qui contient vos vraies données, préférez
+le **mode A** (image épinglée par version **et** digest) : avec un digest, Watchtower n'a jamais
+d'image plus récente à installer, même s'il tourne ; vous mettez à jour quand vous l'avez décidé,
+après une sauvegarde.
 
 Les mêmes avertissements valent pour les deux canaux :
 
