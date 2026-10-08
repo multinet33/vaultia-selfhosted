@@ -3,7 +3,7 @@
 Guide complet, de zéro à un Vaultia en service sur votre réseau local, avec une pile (*stack*)
 Portainer construite depuis ce dépôt. Équivalent en ligne de commande : [docker.md](docker.md).
 
-> **Pré-version (bêta, avant 1.0)** : Vaultia `0.1.0-rc.13`. Faites des sauvegardes.
+> **Pré-version (bêta, avant 1.0)** : Vaultia `0.1.0-rc.14`. Faites des sauvegardes.
 
 Dans tout ce guide, **`192.168.1.100` est un exemple** : remplacez-le par l'adresse IPv4 privée
 de **votre** serveur. Vaultia n'a aucune adresse par défaut de ce genre.
@@ -63,7 +63,7 @@ variables de plus, voir le § 13. Ce choix se fait à la création de la pile ; 
 existante, § 13.2.
 
 La pile tire l'image **épinglée** dans `compose.yaml`
-(`ghcr.io/multinet33/vaultia:0.1.0-rc.13@sha256:2861565c…`) : aucune construction sur le serveur,
+(`ghcr.io/multinet33/vaultia:0.1.0-rc.14@sha256:dda8de58…`) : aucune construction sur le serveur,
 aucun `latest`.
 
 ## 4. Variables d'environnement

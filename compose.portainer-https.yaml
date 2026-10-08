@@ -42,8 +42,8 @@ services:
 
   vaultia:
     # Même image épinglée que compose.yaml (voir ses commentaires et docs/update.md).
-    # 0.1.0-rc.13 : source Vaultia b85131d26ce52613fea45dd8ab154454d3f2cb86 (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.13@sha256:2861565c9c3674c6d9456b1511a3e4779fd4e3311397b4bf66818131455d31bc}
+    # 0.1.0-rc.14 : source Vaultia 9a5fb005802f089793c4239016679c7bb9f0fe6b (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.14@sha256:dda8de584fb03ae04cdc93063df897ea9f032a4a172a6daaab271358d6bfb5fa}
     restart: unless-stopped
     depends_on:
       postgres:
