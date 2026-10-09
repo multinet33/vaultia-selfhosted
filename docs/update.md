@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.15`** (actuel) | `feed4eda7ed9d14d2c59e99c921b783370080bbe` | `sha256:42800824bcd3d2626bc03485951e7203c5d3a03208e82309ea325bde0100fb68` | aperçu des PDF sur iPhone et iPad : plus de fermeture de l'onglet par Safari en consultant plusieurs documents (mémoire libérée, pages dessinées une à une) ; aucune migration de base |
+| **`0.1.0-rc.16`** (actuel) | `3971a9fd717ede92eaa38aed9c56d8bc125b88d2` | `sha256:6dfc76e475f131cc3b6da2f5c218a87a79edcf7ba2809eebeadebe1895ad011f` | fiche d'un objet repensée (grande photo, cartes valeur et achat, anneau de garantie, derniers événements) et version téléphone (onglets, barre d'actions) ; inventaire : puces de catégorie, liste repensée, valeur totale ; police Plus Jakarta Sans embarquée ; accueil : période, marqueurs, répartition en valeur, échéances à 90 jours ; aucune migration de base |
+| `0.1.0-rc.15` | `feed4eda7ed9d14d2c59e99c921b783370080bbe` | `sha256:42800824bcd3d2626bc03485951e7203c5d3a03208e82309ea325bde0100fb68` | aperçu des PDF sur iPhone et iPad : plus de fermeture de l'onglet par Safari en consultant plusieurs documents (mémoire libérée, pages dessinées une à une) ; aucune migration de base |
 | `0.1.0-rc.14` | `9a5fb005802f089793c4239016679c7bb9f0fe6b` | `sha256:dda8de584fb03ae04cdc93063df897ea9f032a4a172a6daaab271358d6bfb5fa` | aperçu des PDF sur iPhone, iPad et Android : toutes les pages s'affichent (iOS ne montrait que la première) ; aucune migration de base |
 | `0.1.0-rc.13` | `b85131d26ce52613fea45dd8ab154454d3f2cb86` | `sha256:2861565c9c3674c6d9456b1511a3e4779fd4e3311397b4bf66818131455d31bc` | inventaire : une teinte par catégorie (objets sans photo, point de couleur) ; centimes affichés plus petits ; états vides illustrés et chargement en forme de liste ; fiche d'un objet : pastilles de synthèse (catégorie, statut, état) et jauge de garantie ; accueil : tendance du patrimoine et répartition par catégorie ; aucune migration de base |
 | `0.1.0-rc.12` | `3c4a40154595812fa67d2fad2600bf5ed1757e2a` | `sha256:391b174d5ba145fa4aa0d54d5aa60688b377334be385b2700af183510a9ea557` | justificatifs des dépenses directes d'une propriété visibles et administrables ; Propriété › Valeur : dépenses de travaux, dépenses directes et total (chaque dépense une fois) ; carnet de vie : « Ouvrir la fiche d'origine » vers la vraie source, rubrique Documents sans les factures d'achat de l'inventaire ; Travaux : interventions hors projet sans doublon ; rubrique « Champs de la catégorie » masquée si vide ; une fenêtre rouverte aussitôt ne se referme plus ; aucune migration de base |
@@ -19,6 +20,25 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.15 à 0.1.0-rc.16
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`. **Faites-le avant de tirer
+   la nouvelle image** : `backup.sh` redémarre Vaultia en fin de sauvegarde, et un redémarrage
+   démarre l'image déjà tirée.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml` et de `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.16`.
+
+- **Aucune migration de base**, **aucune variable** nouvelle ou modifiée, format de sauvegarde 6
+  inchangé. Depuis une version plus ancienne, suivre d'abord les sections ci-dessous : les
+  migrations s'appliquent de la même façon en passant directement à `0.1.0-rc.16`.
+- Mise à jour vérifiée avant publication sur une copie restaurée d'une instance réelle en
+  `0.1.0-rc.15` : aucune migration, données et fichiers identiques, redémarrages sans écart,
+  sauvegarde puis restauration identiques, isolation des Espaces.
 
 ## De 0.1.0-rc.14 à 0.1.0-rc.15
 
