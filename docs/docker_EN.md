@@ -4,7 +4,7 @@ A complete command-line guide, from scratch to a running Vaultia on your local n
 Equivalent with a web interface: [portainer_EN.md](portainer_EN.md). Version française :
 [docker.md](docker.md).
 
-> **Pre-release (beta, before 1.0)**: Vaultia `0.1.0-rc.20`. Keep backups.
+> **Pre-release (beta, before 1.0)**: Vaultia `0.1.0-rc.21`. Keep backups.
 
 Throughout this guide, **`192.168.1.100` is an example**: replace it with the private IPv4
 address of **your** server. Vaultia has no default address of this kind.
@@ -162,7 +162,7 @@ To see the image that will run:
 
     docker compose config --images
     # postgres:18-alpine
-    # ghcr.io/multinet33/vaultia:0.1.0-rc.20@sha256:608ca863…
+    # ghcr.io/multinet33/vaultia:0.1.0-rc.21@sha256:e0c89743…
 
 ⚠ `docker compose config` **without** an option prints the whole configuration **with the
 secrets in clear text**: never paste its output into a forum, a ticket or a public report.
