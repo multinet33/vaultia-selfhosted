@@ -4,7 +4,9 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.27`** (actuel) | `6f95c01b2764edc057b9b0184cdd4142d4093fd4` | `sha256:12a8f4cda13301fb313eb018dc1d07df644ca854493e50798444ed611f536f04` | refonte des valeurs : valeur actuelle = valeur la plus récente encore fraîche (sinon projection), source affichée ; prix de marché × quantité ; valeur d'assurance déclarée prioritaire ; une seule valeur actuelle partout ; objets sortis évalués à leur date ; CSV et API enrichis ; **une migration de base** (additive) |
+| **`0.1.0-rc.29`** (actuel) | `0a50e54e6d7ca69b7cb89a70c206e581f82d93a6` | `sha256:8bcf0853150cf9e8d481106b5a7e48241e2fe0b6e5d38c57ec856b190426b6d8` | inventaire sur téléphone : commandes de l'en-tête sur une ligne ; aucune migration de base |
+| `0.1.0-rc.28` | `8e72ce60a9122a9ac63dac9c023687e20c183a72` | `sha256:a0872ac42b2977bb46e32cdd68b299d0984ba8181ad4df37134aba587f8344d6` | inventaire et fiche objet sur téléphone (catégories sur une ligne, bouton Filtres, commandes regroupées) ; plus de pastille « Web » ; notes du prix de marché sans liste d'annonces ; aucune migration de base |
+| `0.1.0-rc.27` | `6f95c01b2764edc057b9b0184cdd4142d4093fd4` | `sha256:12a8f4cda13301fb313eb018dc1d07df644ca854493e50798444ed611f536f04` | refonte des valeurs : valeur actuelle = valeur la plus récente encore fraîche (sinon projection), source affichée ; prix de marché × quantité ; valeur d'assurance déclarée prioritaire ; une seule valeur actuelle partout ; objets sortis évalués à leur date ; CSV et API enrichis ; **une migration de base** (additive) |
 | `0.1.0-rc.26` | `89861677f1265aee649513777cc15110a8e5a955` | `sha256:3a045b3b31339aa2585dc11773714335f83c82229666f4e9bfc585ae800c06bd` | clés de l'API eBay saisies dans Réglages › Vaultia Vision (chiffrées, par Espace) ; **une migration de base** (additive) |
 | `0.1.0-rc.25` | `1c275085613b4eeb89754f44f5220bcba4155b2a` | `sha256:9f0fcdfb188db7d857bafa3efba565c4a5b1424f70f6bf7f4bf8686838f24afe` | « Actualiser le prix de marché » (annonces d'occasion via SearXNG et eBay) ; une image justificatif n'est plus la photo de l'objet ; pastille « Web » ; variables facultatives EBAY_* ; aucune migration de base |
 | `0.1.0-rc.24` | `fd8038ea5038f50178c0fff4613f9220a62e9592` | `sha256:01f10e2c51fcb0b7eb8c9e29b0ddc9fb9c536e1a1906165a1dd49522f11294c0` | vétusté par catégorie (taux annuel et plafond, barème Vaultia à appliquer depuis Réglages › Catégories, héritage des sous-catégories) ; valeur d'assurance indicative ; illustration d'un objet cherchée sur le Web (Open Facts, SearXNG) ; version sur l'écran de choix des Espaces ; **une migration de base** (additive) |
@@ -31,6 +33,19 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.27 à 0.1.0-rc.29
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml` et de `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.29`.
+
+- **Aucune migration de base**, **aucune variable** nouvelle ou modifiée, format de sauvegarde 6
+  inchangé (rc.28 et rc.29 : interface seulement).
 
 ## De 0.1.0-rc.26 à 0.1.0-rc.27
 
