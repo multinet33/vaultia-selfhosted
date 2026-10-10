@@ -42,8 +42,8 @@ services:
 
   vaultia:
     # Même image épinglée que compose.yaml (voir ses commentaires et docs/update.md).
-    # 0.1.0-rc.24 : source Vaultia fd8038ea5038f50178c0fff4613f9220a62e9592 (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.24@sha256:01f10e2c51fcb0b7eb8c9e29b0ddc9fb9c536e1a1906165a1dd49522f11294c0}
+    # 0.1.0-rc.26 : source Vaultia 89861677f1265aee649513777cc15110a8e5a955 (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.26@sha256:3a045b3b31339aa2585dc11773714335f83c82229666f4e9bfc585ae800c06bd}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -69,6 +69,9 @@ services:
       WEB_PRODUCT_SEARCH_BACKEND: ${WEB_PRODUCT_SEARCH_BACKEND:-}
       WEB_PRODUCT_SEARCH_URL: ${WEB_PRODUCT_SEARCH_URL:-}
       WEB_PRODUCT_SEARCH_API_KEY: ${WEB_PRODUCT_SEARCH_API_KEY:-}
+      EBAY_CLIENT_ID: ${EBAY_CLIENT_ID:-}
+      EBAY_CLIENT_SECRET: ${EBAY_CLIENT_SECRET:-}
+      EBAY_MARKETPLACE: ${EBAY_MARKETPLACE:-}
     volumes:
       - media:/var/lib/vaultia/media
       - models:/var/lib/vaultia/models

@@ -4,7 +4,9 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.24`** (actuel) | `fd8038ea5038f50178c0fff4613f9220a62e9592` | `sha256:01f10e2c51fcb0b7eb8c9e29b0ddc9fb9c536e1a1906165a1dd49522f11294c0` | vétusté par catégorie (taux annuel et plafond, barème Vaultia à appliquer depuis Réglages › Catégories, héritage des sous-catégories) ; valeur d'assurance indicative ; illustration d'un objet cherchée sur le Web (Open Facts, SearXNG) ; version sur l'écran de choix des Espaces ; **une migration de base** (additive) |
+| **`0.1.0-rc.26`** (actuel) | `89861677f1265aee649513777cc15110a8e5a955` | `sha256:3a045b3b31339aa2585dc11773714335f83c82229666f4e9bfc585ae800c06bd` | clés de l'API eBay saisies dans Réglages › Vaultia Vision (chiffrées, par Espace) ; **une migration de base** (additive) |
+| `0.1.0-rc.25` | `1c275085613b4eeb89754f44f5220bcba4155b2a` | `sha256:9f0fcdfb188db7d857bafa3efba565c4a5b1424f70f6bf7f4bf8686838f24afe` | « Actualiser le prix de marché » (annonces d'occasion via SearXNG et eBay) ; une image justificatif n'est plus la photo de l'objet ; pastille « Web » ; variables facultatives EBAY_* ; aucune migration de base |
+| `0.1.0-rc.24` | `fd8038ea5038f50178c0fff4613f9220a62e9592` | `sha256:01f10e2c51fcb0b7eb8c9e29b0ddc9fb9c536e1a1906165a1dd49522f11294c0` | vétusté par catégorie (taux annuel et plafond, barème Vaultia à appliquer depuis Réglages › Catégories, héritage des sous-catégories) ; valeur d'assurance indicative ; illustration d'un objet cherchée sur le Web (Open Facts, SearXNG) ; version sur l'écran de choix des Espaces ; **une migration de base** (additive) |
 | `0.1.0-rc.23` | `4ad0167cad034ed91e50aabb8a1ede0df013e819` | `sha256:1391073eb9d47238395fe04b47949a1e0db1005ba005b447274e716cd37449ac` | photos d'objets montrées entières partout (achats, recherche, objets d'une propriété, liste d'inventaire, accueil, rapports) ; couvertures recadrées au centre ; aucune migration de base |
 | `0.1.0-rc.22` | `56bd9ad50b917ed3751f980155831d9adb3b340c` | `sha256:9b10742cfca01dc19eb59027ad3a04978bcb7ded74563439bebfd208b021fe45` | cartes de l'inventaire : photo entière, pastille d'état qui ne déborde plus ; aucune migration de base |
 | `0.1.0-rc.21` | `74eac9bab4a4d2f3358483743186beffd62de91f` | `sha256:e0c897430411a2f845ac32fdb4039a4c65c177068e483b043ea4952cb1baa7cb` | menu « Plus d'actions » de la fiche objet repensé ; photos des cartes affichées entières ; dates d'achat des objets récents de l'accueil ; aucune migration de base |
@@ -28,6 +30,25 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.24 à 0.1.0-rc.26
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`. **Faites-le avant de tirer
+   la nouvelle image** : `backup.sh` redémarre Vaultia en fin de sauvegarde, et un redémarrage
+   démarre l'image déjà tirée.
+2. `git pull` (nouvelle ligne `image:` et variables `EBAY_*` facultatives dans les fichiers compose).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.26`.
+
+- **Une migration de base** (rc.26), additive : clés eBay par Espace. rc.25 n'en a aucune.
+- Prix de marché : utilise la recherche Web existante (`web-product-search` + SearXNG) ; l'Espace
+  doit être en mode externe. Annonces eBay facultatives : clés saisies dans Réglages › Vaultia Vision,
+  ou `EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET` (et `EBAY_MARKETPLACE`, `EBAY_FR` par défaut) dans
+  `.env`, prioritaires sur les réglages.
+- Les clés eBay saisies dans Vaultia ne sont pas incluses dans les sauvegardes d'Espace.
 
 ## De 0.1.0-rc.23 à 0.1.0-rc.24
 
