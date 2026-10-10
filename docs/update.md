@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.23`** (actuel) | `4ad0167cad034ed91e50aabb8a1ede0df013e819` | `sha256:1391073eb9d47238395fe04b47949a1e0db1005ba005b447274e716cd37449ac` | photos d'objets montrées entières partout (achats, recherche, objets d'une propriété, liste d'inventaire, accueil, rapports) ; couvertures recadrées au centre ; aucune migration de base |
+| **`0.1.0-rc.24`** (actuel) | `fd8038ea5038f50178c0fff4613f9220a62e9592` | `sha256:01f10e2c51fcb0b7eb8c9e29b0ddc9fb9c536e1a1906165a1dd49522f11294c0` | vétusté par catégorie (taux annuel et plafond, barème Vaultia à appliquer depuis Réglages › Catégories, héritage des sous-catégories) ; valeur d'assurance indicative ; illustration d'un objet cherchée sur le Web (Open Facts, SearXNG) ; version sur l'écran de choix des Espaces ; **une migration de base** (additive) |
+| `0.1.0-rc.23` | `4ad0167cad034ed91e50aabb8a1ede0df013e819` | `sha256:1391073eb9d47238395fe04b47949a1e0db1005ba005b447274e716cd37449ac` | photos d'objets montrées entières partout (achats, recherche, objets d'une propriété, liste d'inventaire, accueil, rapports) ; couvertures recadrées au centre ; aucune migration de base |
 | `0.1.0-rc.22` | `56bd9ad50b917ed3751f980155831d9adb3b340c` | `sha256:9b10742cfca01dc19eb59027ad3a04978bcb7ded74563439bebfd208b021fe45` | cartes de l'inventaire : photo entière, pastille d'état qui ne déborde plus ; aucune migration de base |
 | `0.1.0-rc.21` | `74eac9bab4a4d2f3358483743186beffd62de91f` | `sha256:e0c897430411a2f845ac32fdb4039a4c65c177068e483b043ea4952cb1baa7cb` | menu « Plus d'actions » de la fiche objet repensé ; photos des cartes affichées entières ; dates d'achat des objets récents de l'accueil ; aucune migration de base |
 | `0.1.0-rc.20` | `e6ed54411d7d77ad6bc385d87222c809a96f28fb` | `sha256:608ca86369d36207baa856ca9c3f477f5a5517a32310b2b057473c8be11e341f` | mémoire au démarrage réduite (pic ~1,5 Go → ~0,9 Go : modèles chargés à la première utilisation, index sémantique différé) ; état des modèles locaux dans Réglages › Vaultia Vision ; déplacer un objet vers une autre propriété ; libellé libre des identifiants (ASIN…) ; séparer un nombre choisi d'exemplaires ; « Achat supprimé » dans l'historique ; **deux migrations de base** (additives) |
@@ -27,6 +28,32 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.23 à 0.1.0-rc.24
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`. **Faites-le avant de tirer
+   la nouvelle image** : `backup.sh` redémarre Vaultia en fin de sauvegarde, et un redémarrage
+   démarre l'image déjà tirée.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml` et de `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.24`.
+
+- **Une migration de base**, appliquée automatiquement au démarrage, purement additive (provenance
+  des illustrations Web sur les médias). **Aucune variable** nouvelle ou modifiée ; format de
+  sauvegarde 6 inchangé (une sauvegarde d'Espace contenant une illustration Web n'est pas relue par
+  une version antérieure).
+- Vétusté : vos catégories gardent leur réglage ; le barème Vaultia ne s'applique qu'aux catégories
+  cochées dans Réglages › Catégories › « Appliquer le barème Vaultia ». Une sous-catégorie **sans**
+  réglage suit désormais sa catégorie parente.
+- Illustration Web : utilise Open Facts et, si `web-product-search` est installé avec
+  `WEB_PRODUCT_SEARCH_BACKEND=searxng`, la recherche d'images de SearXNG (configuration fournie
+  inchangée) ; l'Espace doit être en mode externe.
+- Mise à jour vérifiée avant publication sur une copie restaurée d'une instance réelle en
+  `0.1.0-rc.23` : migration appliquée une fois, données et fichiers identiques, redémarrage complet
+  sans écart, sauvegarde puis restauration identiques.
 
 ## De 0.1.0-rc.21 à 0.1.0-rc.23
 
