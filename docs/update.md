@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.19`** (actuel) | `69bd345b85c56aecf65c6da438c19daddfc929cd` | `sha256:108c89eb94e419c3d9017d7050db88fe4ac780b050fc93a88f13de14f2512889` | objet en plusieurs exemplaires : prix d'achat additionné, valeur projetée achat par achat, toutes les garanties listées ; badge des notifications ; boutons alignés ; aucune migration de base |
+| **`0.1.0-rc.20`** (actuel) | `e6ed54411d7d77ad6bc385d87222c809a96f28fb` | `sha256:608ca86369d36207baa856ca9c3f477f5a5517a32310b2b057473c8be11e341f` | mémoire au démarrage réduite (pic ~1,5 Go → ~0,9 Go : modèles chargés à la première utilisation, index sémantique différé) ; état des modèles locaux dans Réglages › Vaultia Vision ; déplacer un objet vers une autre propriété ; libellé libre des identifiants (ASIN…) ; séparer un nombre choisi d'exemplaires ; « Achat supprimé » dans l'historique ; **deux migrations de base** (additives) |
+| `0.1.0-rc.19` | `69bd345b85c56aecf65c6da438c19daddfc929cd` | `sha256:108c89eb94e419c3d9017d7050db88fe4ac780b050fc93a88f13de14f2512889` | objet en plusieurs exemplaires : prix d'achat additionné, valeur projetée achat par achat, toutes les garanties listées ; badge des notifications ; boutons alignés ; aucune migration de base |
 | `0.1.0-rc.18` | `c8937bcfd83134003636e6088390a684cd02d3b3` | `sha256:7ebf6b3bdc2836242785ceea8e1063f00ebcc48b75b0820c16214c2b7fabee67` | « Nouvel achat pour cet objet » demande même exemplaire / exemplaires en plus / nouvel exemplaire ; prix payé juste après le vendeur ; séparation d'un objet en fiches individuelles ; aucune migration de base |
 | `0.1.0-rc.17` | `916948755c69a21ef3f8ad45ccf18f27ab1d6785` | `sha256:cd11f8afb434e701affccfd6336708d32f5900662dbf1d6c54e5f934f2495bbf` | factures Amazon bien lues par « Analyser un justificatif » ; 2ᵉ exemplaire d'un objet : trois choix explicites ; achat supprimé signalé dans la fiche ; garantie cochée d'office (2 ans depuis la date d'achat) ; aucune migration de base |
 | `0.1.0-rc.16` | `3971a9fd717ede92eaa38aed9c56d8bc125b88d2` | `sha256:6dfc76e475f131cc3b6da2f5c218a87a79edcf7ba2809eebeadebe1895ad011f` | fiche d'un objet repensée (grande photo, cartes valeur et achat, anneau de garantie, derniers événements) et version téléphone (onglets, barre d'actions) ; inventaire : puces de catégorie, liste repensée, valeur totale ; police Plus Jakarta Sans embarquée ; accueil : période, marqueurs, répartition en valeur, échéances à 90 jours ; aucune migration de base |
@@ -23,6 +24,30 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.19 à 0.1.0-rc.20
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`. **Faites-le avant de tirer
+   la nouvelle image** : `backup.sh` redémarre Vaultia en fin de sauvegarde, et un redémarrage
+   démarre l'image déjà tirée.
+2. `git pull` (nouvelle ligne `image:` de `compose.yaml` et de `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.20`.
+
+- **Deux migrations de base**, appliquées automatiquement au démarrage, purement additives : libellé
+  facultatif des identifiants (`item_identifiers.label`) et type d'événement « Achat supprimé ».
+  **Aucune variable** nouvelle ou modifiée ; format de sauvegarde 6 inchangé (champs facultatifs :
+  une sauvegarde d'Espace qui contient des libellés ou des « Achat supprimé » n'est pas relue par une
+  version antérieure).
+- Mémoire : les modèles de Vaultia Vision ne sont plus chargés au démarrage mais à leur première
+  utilisation, et l'index sémantique attend 3 minutes après le démarrage. L'état exact de chaque
+  modèle est affiché dans Réglages › Vaultia Vision › Modèles locaux.
+- Mise à jour vérifiée avant publication sur une copie restaurée d'une instance réelle en
+  `0.1.0-rc.19` : les deux migrations appliquées une fois, données et fichiers identiques,
+  redémarrages sans écart, sauvegarde puis restauration identiques.
 
 ## De 0.1.0-rc.18 à 0.1.0-rc.19
 
