@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.35`** (actuel) | `95044f13a002938de819da4b7e0a3feb2b0a4abd` | `sha256:35011973ecc2aa4ce3ea8da4bcea6cca463b8ab3b505078e377f3239ab544130` | catégorie exigée à la confirmation d'un justificatif, fiche objet en quatre rubriques ; aucune migration de base |
+| **`0.1.0-rc.36`** (actuel) | `f175e8311c7bb1f2c414b69f5640f57e1c17aa78` | `sha256:19de7f72fea8ead49f32e619c80aa61b3fc9149dce04829e748755feaf31d05f` | valeurs et garantie dans l'en-tête de la fiche objet, recherche de contenant, « Ajouter un article » et désignations sur plusieurs lignes dans les justificatifs, indicateur d'enregistrement, clés eBay ; aucune migration de base |
+| `0.1.0-rc.35` | `95044f13a002938de819da4b7e0a3feb2b0a4abd` | `sha256:35011973ecc2aa4ce3ea8da4bcea6cca463b8ab3b505078e377f3239ab544130` | catégorie exigée à la confirmation d'un justificatif, fiche objet en quatre rubriques ; aucune migration de base |
 | `0.1.0-rc.34` | `b6c721869b219f71257cf5ee537d421010c08e9a` | `sha256:82e660ac593f842de465d8fcd5fb1e68a34f3deb693e6749660acca6a564cf33` | harmonisation de l'interface, catégorie obligatoire, illustration Web après un achat, Réglages › Stockage, visionneuse du justificatif ; aucune migration de base |
 | `0.1.0-rc.33` | `177a7a69ec615b7a5139b9aa39ee5a5446b75250` | `sha256:9e0bc8dea6a481c10456fcb8f8cf4df15b9d8f74b7808fffc24824f5cb691c18` | carnet de vie : frise des années compacte ; aucune migration de base |
 | `0.1.0-rc.32` | `9df07c5eaeefb853cc1ff0b59625266bd0dd746c` | `sha256:279ac992f4afee72a058f90585f80d80662b61b76dc44facc42cde52468cd346` | analyse d'un justificatif : une suite de titre contenant un nombre sans devise n'est plus un second article ; aucune migration de base |
@@ -40,7 +41,7 @@
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
 
-## De 0.1.0-rc.27 à 0.1.0-rc.35
+## De 0.1.0-rc.27 à 0.1.0-rc.36
 
 1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
    `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
@@ -48,10 +49,10 @@
 3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
    pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
 4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
-   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.35`.
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.36`.
 
 - **Aucune migration de base**, **aucune variable** nouvelle ou modifiée, format de sauvegarde 6
-  inchangé (rc.28 à rc.35 : interface, analyse des justificatifs et réglages seulement).
+  inchangé (rc.28 à rc.36 : interface, analyse des justificatifs et réglages seulement).
 
 ## De 0.1.0-rc.26 à 0.1.0-rc.27
 
