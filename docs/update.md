@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.33`** (actuel) | `177a7a69ec615b7a5139b9aa39ee5a5446b75250` | `sha256:9e0bc8dea6a481c10456fcb8f8cf4df15b9d8f74b7808fffc24824f5cb691c18` | carnet de vie : frise des années compacte ; aucune migration de base |
+| **`0.1.0-rc.34`** (actuel) | `b6c721869b219f71257cf5ee537d421010c08e9a` | `sha256:82e660ac593f842de465d8fcd5fb1e68a34f3deb693e6749660acca6a564cf33` | harmonisation de l'interface, catégorie obligatoire, illustration Web après un achat, Réglages › Stockage, visionneuse du justificatif ; aucune migration de base |
+| `0.1.0-rc.33` | `177a7a69ec615b7a5139b9aa39ee5a5446b75250` | `sha256:9e0bc8dea6a481c10456fcb8f8cf4df15b9d8f74b7808fffc24824f5cb691c18` | carnet de vie : frise des années compacte ; aucune migration de base |
 | `0.1.0-rc.32` | `9df07c5eaeefb853cc1ff0b59625266bd0dd746c` | `sha256:279ac992f4afee72a058f90585f80d80662b61b76dc44facc42cde52468cd346` | analyse d'un justificatif : une suite de titre contenant un nombre sans devise n'est plus un second article ; aucune migration de base |
 | `0.1.0-rc.31` | `394e247e295564123ba8a67cc4ac3c123d81b441` | `sha256:5a7ca4d5cca0afef000fcd918e9638fbfadbc522eacc24fc4131d98cff3db5d5` | « Importer un justificatif » dans le menu Créer et ⌘K ; aucune migration de base |
 | `0.1.0-rc.30` | `7708153e89d9469ce5463e930a39085a4a49da64` | `sha256:7f93a017de0daf1918a019c3efc1e1a4d2957e8d4de7c332dcd07428e83b0733` | recherche d'illustration : texte de recherche modifiable avant de relancer ; aucune migration de base |
@@ -38,7 +39,7 @@
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
 
-## De 0.1.0-rc.27 à 0.1.0-rc.33
+## De 0.1.0-rc.27 à 0.1.0-rc.34
 
 1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
    `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
@@ -46,10 +47,10 @@
 3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
    pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
 4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
-   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.33`.
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.34`.
 
 - **Aucune migration de base**, **aucune variable** nouvelle ou modifiée, format de sauvegarde 6
-  inchangé (rc.28 à rc.33 : interface et analyse des justificatifs seulement).
+  inchangé (rc.28 à rc.34 : interface, analyse des justificatifs et réglages seulement).
 
 ## De 0.1.0-rc.26 à 0.1.0-rc.27
 
