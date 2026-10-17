@@ -163,6 +163,8 @@ de Vaultia, contrôlé contre le code.
 | `SMTP_USER` | non | vide : relais sans authentification | Vaultia |
 | `SMTP_PASSWORD` | non | vide | Vaultia |
 | `SMTP_FROM` | non | aucun : obligatoire dès que `SMTP_HOST` est défini | Vaultia |
+| `INBOUND_EMAIL_ADDRESS` | non | vide : réception par e-mail désactivée | Vaultia |
+| `INBOUND_EMAIL_SECRET` | non | vide : réception par e-mail désactivée | Vaultia |
 | `VAULTIA_STORAGE_QUOTA` | non | illimité | Vaultia |
 | `VAULTIA_REQUIRE_VERIFIED_EMAIL` | non | `false` | Vaultia |
 | `VAULTIA_SIGNUPS_PER_HOUR_PER_IP` | non | illimité | Vaultia |
@@ -683,6 +685,34 @@ de Vaultia, contrôlé contre le code.
 - **Pourquoi ne pas la modifier** : une adresse que le serveur n'autorise pas fait rejeter ou classer en indésirable les messages.
 - **Prise en compte** : recréer le conteneur (`docker compose up -d`).
 - **Exemple (fictif)** : `Vaultia <vaultia@example.org>`
+
+#### `INBOUND_EMAIL_ADDRESS`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : vide : réception par e-mail désactivée.
+- **Valeurs, format** : adresse e-mail sans « + » ; va avec `INBOUND_EMAIL_SECRET`.
+- **Rôle** : adresse de base de la réception des factures : chaque Espace reçoit à `local+<jeton>@domaine` (jeton aléatoire, régénérable). Les pièces jointes (PDF, images) d'un e-mail envoyé par l'adresse de connexion **vérifiée** d'un membre deviennent des justificatifs à traiter dans l'Espace.
+- **Si absente** : réception désactivée : aucune adresse affichée, `POST /api/inbound/email` répond 404.
+- **Si invalide** : « INBOUND_EMAIL_ADDRESS doit être une adresse e-mail sans « + » », ou définie sans `INBOUND_EMAIL_SECRET` : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : transférer ses factures à Vaultia depuis sa messagerie (Cloudflare Email Routing, Mailgun, Brevo… — voir docs/operations/email.md).
+- **Pourquoi ne pas la modifier** : inutile sans fournisseur de réception qui sache adresser les sous-adresses `+jeton` à cette boîte et POSTer l'e-mail brut au webhook.
+- **Sécurité** : seuls les membres qui envoient depuis leur adresse de connexion vérifiée sont acceptés ; `dmarc=fail` est refusé quand le fournisseur transmet `Authentication-Results`.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `factures@example.org`
+
+#### `INBOUND_EMAIL_SECRET`
+
+- **Obligatoire** : non — **secret** ; lue par : Vaultia.
+- **Défaut de l'application** : vide : réception par e-mail désactivée.
+- **Valeurs, format** : au moins 32 caractères (`openssl rand -hex 32`) ; va avec `INBOUND_EMAIL_ADDRESS`.
+- **Rôle** : secret partagé avec le fournisseur de réception : il ouvre `POST /api/inbound/email` (en-tête `Authorization: Bearer <secret>`, corps = e-mail brut RFC 822).
+- **Si absente** : réception désactivée (route 404).
+- **Si invalide** : « doit contenir au moins 32 caractères », valeur d'exemple, ou défini sans `INBOUND_EMAIL_ADDRESS` : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : activer la réception ; le renouveler si le Worker ou le fournisseur a été compromis.
+- **Pourquoi ne pas la modifier** : le changer sans mettre à jour le fournisseur fait refuser (401) chaque e-mail reçu.
+- **Sécurité** : secret ; comparaison en temps constant ; à ne jamais placer dans une URL.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : 64 caractères hexadécimaux (`openssl rand -hex 32`)
 
 #### `VAULTIA_REQUIRE_VERIFIED_EMAIL`
 

@@ -42,8 +42,8 @@ services:
 
   vaultia:
     # Même image épinglée que compose.yaml (voir ses commentaires et docs/update.md).
-    # 0.1.0-rc.41 : source Vaultia b1e13d0620d480a3b1368595239e0e3b6bb4742f (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.41@sha256:007bfeb15af28319f307a8c400c5ea4aa301dd0c33636e78ba8629295c80bef6}
+    # 0.1.0-rc.42 : source Vaultia 95761d99918b243a03c3d095f7e819432829bb41 (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.42@sha256:8e2ad37e982009d42972abd83b97bc676bad967c01480a8a27741afbe50cbc77}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -80,6 +80,9 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-}
       VAULTIA_REQUIRE_VERIFIED_EMAIL: ${VAULTIA_REQUIRE_VERIFIED_EMAIL:-}
+      # Réception de factures par e-mail (facultatif, à définir ensemble ; instance joignable depuis Internet).
+      INBOUND_EMAIL_ADDRESS: ${INBOUND_EMAIL_ADDRESS:-}
+      INBOUND_EMAIL_SECRET: ${INBOUND_EMAIL_SECRET:-}
       # Instance hébergée pour d'autres (facultatif) : vides, rien n'est limité.
       VAULTIA_STORAGE_QUOTA: ${VAULTIA_STORAGE_QUOTA:-}
       VAULTIA_SIGNUPS_PER_HOUR_PER_IP: ${VAULTIA_SIGNUPS_PER_HOUR_PER_IP:-}
