@@ -37,8 +37,8 @@ services:
     # Image candidate épinglée par son empreinte (digest) : l'image lancée est exactement celle du
     # code source indiqué dans docs/update.md, même si le tag était déplacé. Une mise à jour est un
     # changement de cette ligne (git pull de ce dépôt), jamais un « latest » implicite.
-    # 0.1.0-rc.40 : source Vaultia 70c44bc4d201fb63c6431d2163df7f7ad4443b78 (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.40@sha256:dac88f6298556eb829761217770b70d3746e6a560dbfd2ec8eae8dc738e8c254}
+    # 0.1.0-rc.41 : source Vaultia b1e13d0620d480a3b1368595239e0e3b6bb4742f (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.41@sha256:007bfeb15af28319f307a8c400c5ea4aa301dd0c33636e78ba8629295c80bef6}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -70,6 +70,24 @@ services:
       EBAY_CLIENT_ID: ${EBAY_CLIENT_ID:-}
       EBAY_CLIENT_SECRET: ${EBAY_CLIENT_SECRET:-}
       EBAY_MARKETPLACE: ${EBAY_MARKETPLACE:-}
+      # Envoi d'e-mails (facultatif, docs/configuration.md) : SMTP_HOST vide = aucun e-mail.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_TLS: ${SMTP_TLS:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      VAULTIA_REQUIRE_VERIFIED_EMAIL: ${VAULTIA_REQUIRE_VERIFIED_EMAIL:-}
+      # Instance hébergée pour d'autres (facultatif) : vides, rien n'est limité.
+      VAULTIA_STORAGE_QUOTA: ${VAULTIA_STORAGE_QUOTA:-}
+      VAULTIA_SIGNUPS_PER_HOUR_PER_IP: ${VAULTIA_SIGNUPS_PER_HOUR_PER_IP:-}
+      VAULTIA_MAX_WORKSPACES_PER_ACCOUNT: ${VAULTIA_MAX_WORKSPACES_PER_ACCOUNT:-}
+      VAULTIA_MAX_MEMBERS_PER_WORKSPACE: ${VAULTIA_MAX_MEMBERS_PER_WORKSPACE:-}
+      VAULTIA_INVITATIONS_PER_DAY: ${VAULTIA_INVITATIONS_PER_DAY:-}
+      VAULTIA_MAX_ITEMS_PER_ACCOUNT: ${VAULTIA_MAX_ITEMS_PER_ACCOUNT:-}
+      VAULTIA_MAX_API_TOKENS_PER_ACCOUNT: ${VAULTIA_MAX_API_TOKENS_PER_ACCOUNT:-}
+      VAULTIA_BACKUPS_PER_HOUR_PER_WORKSPACE: ${VAULTIA_BACKUPS_PER_HOUR_PER_WORKSPACE:-}
+      VAULTIA_WEB_SEARCHES_PER_DAY: ${VAULTIA_WEB_SEARCHES_PER_DAY:-}
     volumes:
       - media:/var/lib/vaultia/media
       - models:/var/lib/vaultia/models

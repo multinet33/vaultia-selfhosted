@@ -157,6 +157,22 @@ de Vaultia, contrôlé contre le code.
 | `VAULTIA_IMAGE` | non | image publique épinglée (version immuable et empreinte `sha256`) de la distribution | Compose |
 | `COMPOSE_FILE` | non | vide : `compose.yaml` seul | Compose |
 | `COMPOSE` | non | `docker compose` | scripts de l'hôte |
+| `SMTP_HOST` | non | vide : aucun e-mail envoyé | Vaultia |
+| `SMTP_PORT` | non | `587` | Vaultia |
+| `SMTP_TLS` | non | `implicit` si `SMTP_PORT=465`, sinon `starttls` | Vaultia |
+| `SMTP_USER` | non | vide : relais sans authentification | Vaultia |
+| `SMTP_PASSWORD` | non | vide | Vaultia |
+| `SMTP_FROM` | non | aucun : obligatoire dès que `SMTP_HOST` est défini | Vaultia |
+| `VAULTIA_STORAGE_QUOTA` | non | illimité | Vaultia |
+| `VAULTIA_REQUIRE_VERIFIED_EMAIL` | non | `false` | Vaultia |
+| `VAULTIA_SIGNUPS_PER_HOUR_PER_IP` | non | illimité | Vaultia |
+| `VAULTIA_MAX_WORKSPACES_PER_ACCOUNT` | non | illimité | Vaultia |
+| `VAULTIA_MAX_MEMBERS_PER_WORKSPACE` | non | illimité | Vaultia |
+| `VAULTIA_INVITATIONS_PER_DAY` | non | illimité | Vaultia |
+| `VAULTIA_MAX_ITEMS_PER_ACCOUNT` | non | illimité | Vaultia |
+| `VAULTIA_MAX_API_TOKENS_PER_ACCOUNT` | non | illimité | Vaultia |
+| `VAULTIA_BACKUPS_PER_HOUR_PER_WORKSPACE` | non | illimité (la limite par compte du Centre de migration s'applique toujours) | Vaultia |
+| `VAULTIA_WEB_SEARCHES_PER_DAY` | non | illimité | Vaultia |
 
 ### Base de données
 
@@ -585,6 +601,103 @@ de Vaultia, contrôlé contre le code.
 - **Prise en compte** : recréer le conteneur (`docker compose up -d`).
 - **Exemple (fictif)** : 64 caractères hexadécimaux (`openssl rand -hex 32`)
 
+### Envoi d'e-mails
+
+#### `SMTP_HOST`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : vide : aucun e-mail envoyé.
+- **Valeurs, format** : nom d'hôte ou adresse IP, sans schéma ni port.
+- **Rôle** : serveur SMTP qui relaie les e-mails de Vaultia : mot de passe oublié, vérification et changement d'adresse, alertes de sécurité, invitations, rappels d'échéances.
+- **Si absente** : aucune fonction e-mail : pas de « mot de passe oublié », invitations par lien seulement ; aucun écran ne prétend qu'un e-mail est parti.
+- **Si invalide** : « SMTP_HOST doit être un nom d'hôte ou une adresse IP » ; une autre variable `SMTP_*` définie sans elle : « défini(es) sans SMTP_HOST » — Vaultia ne démarre pas.
+- **Pourquoi la modifier** : permettre la réinitialisation du mot de passe et les e-mails de l'instance.
+- **Pourquoi ne pas la modifier** : sans serveur SMTP joignable, chaque envoi échoue (journalisé) ; le lien d'invitation affiché reste utilisable.
+- **Réseau** : connexion sortante vers ce serveur, sur `SMTP_PORT`.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `smtp.example.org`
+
+#### `SMTP_PORT`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : `587`.
+- **Valeurs, format** : numéro de port (1 à 65535).
+- **Rôle** : port du serveur SMTP ; décide aussi du chiffrement par défaut (465 : TLS implicite, sinon STARTTLS).
+- **Si absente** : `587`.
+- **Si invalide** : « SMTP_PORT doit être un numéro de port entre 1 et 65535 » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : serveur en 465 (SMTPS) ou relais local en 25.
+- **Pourquoi ne pas la modifier** : doit correspondre au serveur ; un port faux fait échouer chaque envoi.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `587`
+
+#### `SMTP_TLS`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : `implicit` si `SMTP_PORT=465`, sinon `starttls`.
+- **Valeurs, format** : `implicit` (TLS dès la connexion), `starttls` (STARTTLS exigé) ou `none` (aucun chiffrement).
+- **Rôle** : chiffrement de la connexion SMTP. En `starttls`, un serveur qui ne propose pas STARTTLS est refusé : jamais d'envoi en clair par défaut.
+- **Si absente** : selon le port (voir défaut).
+- **Si invalide** : « SMTP_TLS doit valoir implicit, starttls, none » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : `none` pour un relais local (Postfix de l'hôte, conteneur du même réseau) qui ne chiffre pas.
+- **Pourquoi ne pas la modifier** : `none` vers un serveur distant fait circuler identifiants et liens de connexion en clair (avertissement au démarrage).
+- **Sécurité** : le certificat du serveur est vérifié (`implicit`, `starttls`).
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `starttls`
+
+#### `SMTP_USER`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : vide : relais sans authentification.
+- **Valeurs, format** : identifiant du compte SMTP ; va avec `SMTP_PASSWORD`.
+- **Rôle** : authentification auprès du serveur SMTP.
+- **Si absente** : envoi sans authentification (relais local).
+- **Si invalide** : « SMTP_USER et SMTP_PASSWORD vont ensemble » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : serveur SMTP qui exige une authentification (cas général).
+- **Pourquoi ne pas la modifier** : doit correspondre au compte du serveur.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `vaultia@example.org`
+
+#### `SMTP_PASSWORD`
+
+- **Obligatoire** : non — **secret** ; lue par : Vaultia.
+- **Défaut de l'application** : vide.
+- **Valeurs, format** : mot de passe du compte SMTP (pris tel quel) ; va avec `SMTP_USER`.
+- **Rôle** : authentification auprès du serveur SMTP.
+- **Si absente** : envoi sans authentification.
+- **Si invalide** : « SMTP_USER et SMTP_PASSWORD vont ensemble » : Vaultia ne démarre pas. Jamais cité dans un message ni un journal.
+- **Pourquoi la modifier** : rotation du mot de passe du compte SMTP.
+- **Pourquoi ne pas la modifier** : un mot de passe faux fait échouer chaque envoi (journalisé, sans le mot de passe).
+- **Sécurité** : secret ; préférez un mot de passe d'application dédié à Vaultia.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `app-password-example-0000`
+
+#### `SMTP_FROM`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : aucun : obligatoire dès que `SMTP_HOST` est défini.
+- **Valeurs, format** : `adresse@domaine` ou `Nom <adresse@domaine>`.
+- **Rôle** : expéditeur des e-mails de Vaultia.
+- **Si absente** : avec `SMTP_HOST` : « SMTP_FROM n'est pas définie » — Vaultia ne démarre pas.
+- **Si invalide** : « SMTP_FROM doit être une adresse e-mail » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : adresse autorisée à envoyer par votre serveur SMTP (SPF, DKIM).
+- **Pourquoi ne pas la modifier** : une adresse que le serveur n'autorise pas fait rejeter ou classer en indésirable les messages.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `Vaultia <vaultia@example.org>`
+
+#### `VAULTIA_REQUIRE_VERIFIED_EMAIL`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : `false`.
+- **Valeurs, format** : `true`/`false` (ou `1`/`0`, casse ignorée).
+- **Rôle** : exige une adresse vérifiée pour se connecter : après l'inscription, aucune session n'est ouverte avant le clic sur le lien reçu ; un compte jamais vérifié et sans contenu est supprimé après 7 jours.
+- **Si absente** : `false` : la connexion est permise, l'adresse reste « non vérifiée » tant que le lien n'a pas été suivi.
+- **Si invalide** : « doit valoir true ou false », ou « exige l'envoi d'e-mails » sans `SMTP_HOST` : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance ouverte à l'inscription (`VAULTIA_SIGNUP_POLICY=open`) : écarte les adresses inventées.
+- **Pourquoi ne pas la modifier** : un compte non vérifié ne peut plus se connecter tant qu'il n'a pas suivi le lien (renvoyé sur demande).
+- **Sécurité** : contrôlé côté serveur à chaque connexion.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `true`
+
 ### Distribution Docker (Compose, Caddy, image)
 
 #### `VAULTIA_IMAGE`
@@ -615,6 +728,127 @@ de Vaultia, contrôlé contre le code.
 - **Prise en compte** : au prochain lancement du script.
 - **Exemple (fictif)** : `COMPOSE="docker compose -f compose.yaml -f compose.override.yaml"`
 
+### Instance hébergée : quotas et limites
+
+#### `VAULTIA_STORAGE_QUOTA`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : taille : `500MB`, `1GB`, `1,5 Go`, `2GiB` (unités décimales ; un nombre seul = octets).
+- **Rôle** : quota de stockage de fichiers par compte (photos, documents, justificatifs, coffre, illustrations Web). Un fichier d'un Espace est décompté du compte propriétaire de l'Espace ; un document personnel du coffre, de son auteur. Un administrateur de l'instance peut le surcharger compte par compte.
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_STORAGE_QUOTA doit être une taille » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance hébergée pour d'autres : borner la place que chaque compte peut occuper.
+- **Pourquoi ne pas la modifier** : abaissé sous la consommation d'un compte, il ne supprime rien : seuls les nouveaux fichiers de ce compte sont refusés.
+- **Sécurité** : contrôlé côté serveur, sous verrou, sur chaque écriture de fichier.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `1GB`
+
+#### `VAULTIA_SIGNUPS_PER_HOUR_PER_IP`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : comptes créés au plus par heure depuis une même adresse IP (inscriptions réussies).
+- **Si absente** : illimité (la limite de fréquence de la route d'inscription s'applique toujours).
+- **Si invalide** : « VAULTIA_SIGNUPS_PER_HOUR_PER_IP doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : inscription ouverte (`VAULTIA_SIGNUP_POLICY=open`).
+- **Pourquoi ne pas la modifier** : derrière un reverse proxy non déclaré dans `TRUSTED_PROXIES`, tous les clients partagent une adresse : la limite les bloquerait ensemble.
+- **Réseau** : adresse du client lue comme pour la connexion (`TRUSTED_PROXIES`).
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `5`
+
+#### `VAULTIA_MAX_WORKSPACES_PER_ACCOUNT`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : Espaces dont un compte peut être propriétaire (premier Espace et restaurations compris). Rejoindre l'Espace d'un autre n'en consomme pas.
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_MAX_WORKSPACES_PER_ACCOUNT doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance hébergée.
+- **Pourquoi ne pas la modifier** : abaissée, elle ne supprime aucun Espace : seule la création est refusée.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `3`
+
+#### `VAULTIA_MAX_MEMBERS_PER_WORKSPACE`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : membres d'un Espace, **invitations en attente comprises** (une invitation réserve une place).
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_MAX_MEMBERS_PER_WORKSPACE doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance hébergée.
+- **Pourquoi ne pas la modifier** : abaissée, elle ne retire aucun membre : seules les nouvelles invitations et acceptations sont refusées.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `10`
+
+#### `VAULTIA_INVITATIONS_PER_DAY`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : invitations envoyées ou renouvelées par un compte sur 24 heures glissantes (tous Espaces confondus).
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_INVITATIONS_PER_DAY doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance publique avec envoi d'e-mails : borner le spam par invitation.
+- **Pourquoi ne pas la modifier** : aucune.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `20`
+
+#### `VAULTIA_MAX_ITEMS_PER_ACCOUNT`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : objets des Espaces dont le compte est propriétaire (quel que soit le membre qui les crée, imports et restaurations compris).
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_MAX_ITEMS_PER_ACCOUNT doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance hébergée : borner la taille de la base par compte.
+- **Pourquoi ne pas la modifier** : abaissée, elle ne supprime aucun objet : seules les créations sont refusées.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `20000`
+
+#### `VAULTIA_MAX_API_TOKENS_PER_ACCOUNT`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : jetons d'API actifs (ni révoqués, ni expirés) créés par un compte, tous Espaces confondus.
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_MAX_API_TOKENS_PER_ACCOUNT doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance hébergée.
+- **Pourquoi ne pas la modifier** : abaissée, elle ne révoque aucun jeton.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `5`
+
+#### `VAULTIA_BACKUPS_PER_HOUR_PER_WORKSPACE`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité (la limite par compte du Centre de migration s'applique toujours).
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : sauvegardes (archives ZIP) générées par Espace sur une heure glissante, tous membres confondus.
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_BACKUPS_PER_HOUR_PER_WORKSPACE doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance hébergée : une archive relit tous les fichiers de l'Espace.
+- **Pourquoi ne pas la modifier** : aucune.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `1`
+
+#### `VAULTIA_WEB_SEARCHES_PER_DAY`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : illimité.
+- **Valeurs, format** : entier, de 1 à 100000000.
+- **Rôle** : recherches Web (illustration Web, prix de marché) par compte, sur une fenêtre de 24 heures ouverte par la première recherche.
+- **Si absente** : illimité.
+- **Si invalide** : « VAULTIA_WEB_SEARCHES_PER_DAY doit être un nombre entier » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : instance publique : le moteur de recherche (SearXNG, Brave, eBay) a ses propres quotas.
+- **Pourquoi ne pas la modifier** : aucune.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `50`
+
 ### Variables internes (ne pas régler)
 
 Lues par le code, mais fixées par l'image, réservées à la construction, au développement ou aux tests.
@@ -639,6 +873,7 @@ Lues par le code, mais fixées par l'image, réservées à la construction, au d
 - `NODE_IMAGE` : argument de construction (image Node de base).
 - `TEST_DATABASE_URL` : tests d'intégration (base dont le nom finit par `_test`).
 - `E2E_PORT` : tests de bout en bout.
+- `E2E_SMTP_PORT` : tests de bout en bout : port du faux serveur SMTP local (défaut : `E2E_PORT` + 1025).
 - `CI` : tests.
 - `IMAGE_SERVER_REQUIRED` : tests : exige le build de production pour le test du serveur de l'image.
 - `VISION_MODEL_REQUIRED` : tests : exige le modèle de vision.

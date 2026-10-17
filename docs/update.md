@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.40`** (actuel) | `70c44bc4d201fb63c6431d2163df7f7ad4443b78` | `sha256:dac88f6298556eb829761217770b70d3746e6a560dbfd2ec8eae8dc738e8c254` | carton déballé : le garder (masqué), l'archiver ou le supprimer ; fiche du carton allégée ; « Vendu en lot avec » par recherche ; section Contenu corrigée ; **une migration de base additive**, appliquée au démarrage |
+| **`0.1.0-rc.41`** (actuel) | `b1e13d0620d480a3b1368595239e0e3b6bb4742f` | `sha256:007bfeb15af28319f307a8c400c5ea4aa301dd0c33636e78ba8629295c80bef6` | envoi d'e-mails par SMTP (mot de passe oublié, vérification et changement d'adresse, alertes, invitations, rappels), administration de l'instance, quota de stockage par compte et limites anti-abus, ranger un objet existant par recherche ; **deux migrations de base**, appliquées au démarrage ; variables nouvelles, toutes facultatives |
+| `0.1.0-rc.40` | `70c44bc4d201fb63c6431d2163df7f7ad4443b78` | `sha256:dac88f6298556eb829761217770b70d3746e6a560dbfd2ec8eae8dc738e8c254` | carton déballé : le garder (masqué), l'archiver ou le supprimer ; fiche du carton allégée ; « Vendu en lot avec » par recherche ; section Contenu corrigée ; **une migration de base additive**, appliquée au démarrage |
 | `0.1.0-rc.39` | `d814871320597852090301ccf3756a33df8ce9e5` | `sha256:091408f9be9551f20cef2f98b180c7f0da1440e07e41a0c41e5075ac0f9bcee9` | suivi SAV, déménagements et cartons, score de complétude, récapitulatif annuel, vente en lot, retour remboursé, acheté pour offrir après coup, corrections (formulaires des panneaux) ; **cinq migrations de base additives**, appliquées au démarrage |
 | `0.1.0-rc.38` | `976767720d197a1127faaa3860bcc0f96933691e` | `sha256:fae6154dfa4096641d5a946af3c807bc5d8ab3dae22a8ef4c1bef5adea3ec760` | acheté pour offrir, image affichée au choix (photo ou illustration), détail de la facture, dépôt de fichiers sur la fiche, propriété choisie à l'import, corrections de formulaires ; **deux migrations de base additives**, appliquées au démarrage |
 | `0.1.0-rc.37` | `1d6e5aed1bd47eb862882f98313201db53bbaddb` | `sha256:5cb38a3583a0c89f483560cbf55fbb19c34c360e620f1cbf890e5a6c2ba068d6` | illustrations optimisées, page des Espaces, nouvel Accueil, finitions visuelles et nouvelle identité ; **une migration de base additive**, appliquée au démarrage |
@@ -44,6 +45,29 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.40 à 0.1.0-rc.41
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
+2. `git pull` (nouvelle ligne `image:` et nouvelles variables de `compose.yaml` et de
+   `compose.portainer-https.yaml`, nouveau modèle `.env.example`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.41`.
+
+- **Deux migrations de base**, appliquées automatiquement au démarrage :
+  `20261017050000_add_email_delivery` (les comptes existants sont marqués « adresse vérifiée »,
+  préférences de rappels par e-mail désactivées) et `20261017060001_add_instance_admin_quotas`
+  (le compte le plus ancien devient **administrateur de l'instance**, page `/app/admin` ; secours :
+  `docker compose run --rm --no-deps vaultia instance-admin <adresse>` si plus aucun
+  administrateur).
+- **Variables nouvelles, toutes facultatives** (vides : rien ne change) : envoi d'e-mails
+  `SMTP_HOST`, `SMTP_PORT`, `SMTP_TLS`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`,
+  `VAULTIA_REQUIRE_VERIFIED_EMAIL` (exige `SMTP_HOST`) ; instance ouverte à d'autres
+  `VAULTIA_STORAGE_QUOTA` et les limites `VAULTIA_*` — voir [configuration.md](configuration.md).
+  Format de sauvegarde 6 inchangé.
 
 ## De 0.1.0-rc.39 à 0.1.0-rc.40
 
