@@ -143,6 +143,9 @@ de Vaultia, contrôlé contre le code.
 | `CADDY_HTTPS_PORT` | non | `443` | Compose |
 | `CADDY_IPV4_ADDRESS` | non | `172.30.83.10` | Compose |
 | `MEDIA_MAX_UPLOAD_BYTES` | non | `10000000` (10 Mo) | Vaultia |
+| `MEDIA_PHOTO_MAX_EDGE` | non | `2560` (pixels) | Vaultia |
+| `TIMESTAMP_TSA_URL` | non | vide (horodatage désactivé : aucun appel réseau) | Vaultia |
+| `TIMESTAMP_TSA_CA_FILE` | non | vide (signature du jeton vérifiée avec le certificat qu'il contient) | Vaultia |
 | `MEDIA_STORAGE_DIR` | non | `/var/lib/vaultia/media` (volume `media`) | Vaultia |
 | `INTELLIGENCE_PROVIDERS` | non | `zxing-barcode,tesseract-ocr,siglip2-vision,e5-embeddings,document-rules,open-facts` | Vaultia |
 | `INTELLIGENCE_MODELS_PROVISION` | non | `auto` | démarrage de l'image |
@@ -437,6 +440,46 @@ de Vaultia, contrôlé contre le code.
 - **Réseau** : un proxy devant Vaultia doit accepter au moins cette taille de requête.
 - **Prise en compte** : recréer le conteneur (`docker compose up -d`).
 - **Exemple (fictif)** : `20000000`
+
+#### `MEDIA_PHOTO_MAX_EDGE`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : `2560` (pixels).
+- **Valeurs, format** : entier, pixels : `0` (désactivé) ou de 1024 à 10000.
+- **Rôle** : plus grand côté d'une photo d'objet (ou d'un justificatif en image) après réduction à l'envoi. Une photo plus grande est redressée, réduite et réencodée dans son format (JPEG et WebP en qualité 85, PNG sans perte), seulement si elle devient plus légère. Date, appareil et position GPS de la prise de vue sont conservés (preuve). Une photo plus petite et les documents d'une propriété, d'un véhicule ou du coffre restent intacts.
+- **Si absente** : 2560 px : une photo de téléphone de 3 à 5 Mo descend autour de 0,5 à 0,8 Mo, sans différence visible à l'écran.
+- **Si invalide** : « MEDIA_PHOTO_MAX_EDGE doit valoir 0 (désactivé) ou un nombre de pixels entre 1024 et 10000 » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : `0` pour garder chaque photo en pleine définition ; une valeur plus haute (4096) pour zoomer davantage.
+- **Pourquoi ne pas la modifier** : la réduction ne s'applique qu'aux nouveaux envois : les photos déjà stockées ne sont jamais retouchées.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `0`
+
+#### `TIMESTAMP_TSA_URL`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : vide (horodatage désactivé : aucun appel réseau).
+- **Valeurs, format** : URL d'une autorité d'horodatage RFC 3161 : https, ou http seulement vers localhost / une IPv4 privée ; sans identifiants ni fragment.
+- **Rôle** : horodatage certifié des fichiers d'objets et des attestations pour l'assurance (`docs/operations/timestamping.md`). Seule l'empreinte SHA-256 du fichier est envoyée, jamais le fichier. Chaque jeton est vérifié (statut, empreinte, nonce, signature) avant d'être enregistré.
+- **Si absente** : horodatage désactivé : les fichiers restent prouvés par leur empreinte SHA-256 et leur date d'ajout, sans jeton vérifiable par un tiers.
+- **Si invalide** : « TIMESTAMP_TSA_URL doit utiliser https… » : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : obtenir des preuves de date vérifiables par un tiers (assurance, litige) : `https://freetsa.org/tsr` (gratuit) ou l'autorité de votre choix.
+- **Pourquoi ne pas la modifier** : une autorité gratuite ne garantit ni disponibilité ni conservation : Vaultia limite les appels (une demande par seconde au plus) et reprend plus tard ceux qui échouent ; un envoi n'attend jamais l'autorité.
+- **Réseau** : requêtes sortantes vers cette autorité seulement (une empreinte de 32 octets par fichier), sans redirection suivie, délai de 10 s.
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `https://freetsa.org/tsr`
+
+#### `TIMESTAMP_TSA_CA_FILE`
+
+- **Obligatoire** : non ; lue par : Vaultia.
+- **Défaut de l'application** : vide (signature du jeton vérifiée avec le certificat qu'il contient).
+- **Valeurs, format** : chemin d'un fichier PEM (un ou plusieurs certificats) lisible par le processus.
+- **Rôle** : certificats de confiance de l'autorité (`cacert.pem` de FreeTSA, par exemple) : chaque jeton reçu doit être signé par un certificat qui en descend. Sans lui, la signature est vérifiée, mais la confiance dans l'autorité ne l'est qu'hors de Vaultia (`openssl ts -verify -CAfile`).
+- **Si absente** : signature vérifiée sans chaîne de confiance.
+- **Si invalide** : « TIMESTAMP_TSA_CA_FILE (…) est illisible » ou « ne contient aucun certificat PEM », ou renseignée sans `TIMESTAMP_TSA_URL` : Vaultia ne démarre pas.
+- **Pourquoi la modifier** : refuser tout jeton qui ne viendrait pas de l'autorité attendue.
+- **Pourquoi ne pas la modifier** : dans l'image Docker, le fichier doit être monté dans le conteneur (volume en lecture seule).
+- **Prise en compte** : recréer le conteneur (`docker compose up -d`).
+- **Exemple (fictif)** : `/etc/vaultia/freetsa-cacert.pem`
 
 #### `MEDIA_STORAGE_DIR`
 

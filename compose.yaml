@@ -37,8 +37,8 @@ services:
     # Image candidate épinglée par son empreinte (digest) : l'image lancée est exactement celle du
     # code source indiqué dans docs/update.md, même si le tag était déplacé. Une mise à jour est un
     # changement de cette ligne (git pull de ce dépôt), jamais un « latest » implicite.
-    # 0.1.0-rc.42 : source Vaultia 95761d99918b243a03c3d095f7e819432829bb41 (linux/amd64, linux/arm64).
-    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.42@sha256:8e2ad37e982009d42972abd83b97bc676bad967c01480a8a27741afbe50cbc77}
+    # 0.1.0-rc.43 : source Vaultia 019de3a6f1dea309a6924e9227b171cd3ec5c429 (linux/amd64, linux/arm64).
+    image: ${VAULTIA_IMAGE:-ghcr.io/multinet33/vaultia:0.1.0-rc.43@sha256:6bc98a5d4fc20e041f96c14a59a9a363e78c42cf81f54670b82fefa1715c634c}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -53,6 +53,7 @@ services:
       HSTS_MAX_AGE: ${HSTS_MAX_AGE:-}
       NOTIFICATIONS_CRON_SECRET: ${NOTIFICATIONS_CRON_SECRET:-}
       MEDIA_MAX_UPLOAD_BYTES: ${MEDIA_MAX_UPLOAD_BYTES:-}
+      MEDIA_PHOTO_MAX_EDGE: ${MEDIA_PHOTO_MAX_EDGE:-}
       # Moteurs installés (liste de l'image) : tous locaux, sauf open-facts (Internet), appelé
       # seulement pour un Espace en mode « externe », jamais en mode local. Installé n'est pas
       # autorisé : chaque Espace reste « désactivé » tant que son administrateur ne choisit pas.
@@ -81,6 +82,9 @@ services:
       # Réception de factures par e-mail (facultatif, à définir ensemble ; instance joignable depuis Internet).
       INBOUND_EMAIL_ADDRESS: ${INBOUND_EMAIL_ADDRESS:-}
       INBOUND_EMAIL_SECRET: ${INBOUND_EMAIL_SECRET:-}
+      # Horodatage certifié RFC 3161 des fichiers (facultatif ; vide : désactivé, aucun appel réseau).
+      TIMESTAMP_TSA_URL: ${TIMESTAMP_TSA_URL:-}
+      TIMESTAMP_TSA_CA_FILE: ${TIMESTAMP_TSA_CA_FILE:-}
       # Instance hébergée pour d'autres (facultatif) : vides, rien n'est limité.
       VAULTIA_STORAGE_QUOTA: ${VAULTIA_STORAGE_QUOTA:-}
       VAULTIA_SIGNUPS_PER_HOUR_PER_IP: ${VAULTIA_SIGNUPS_PER_HOUR_PER_IP:-}
