@@ -4,7 +4,8 @@
 
 | Candidat | Source Vaultia | Digest (index multi-architecture) | Nouveautés |
 | --- | --- | --- | --- |
-| **`0.1.0-rc.43`** (actuel) | `019de3a6f1dea309a6924e9227b171cd3ec5c429` | `sha256:6bc98a5d4fc20e041f96c14a59a9a363e78c42cf81f54670b82fefa1715c634c` | effet studio des photos (Originale, Lumière, Fond blanc, Studio, original intact), preuve de prise de vue (date, appareil, lieu, empreinte), horodatage certifié RFC 3161 facultatif, attestation PDF pour l'assurance, photos réduites à l'envoi (2560 px), correctif d'affichage de l'Inventaire sur iPhone ; **deux migrations de base additives**, appliquées au démarrage ; trois variables facultatives |
+| **`0.1.0-rc.44`** (actuel) | `2d26a0b1757a883596e38da873c69edf9e7f082e` | `sha256:ec4e1523240c7624d1a808b3674d8e6c67fe552c2d4e8b559adec7dc132ab084` | attestation pour l'assurance de l'inventaire jusqu'à 500 objets en version compacte (attestation par catégorie conseillée), effet studio deux fois plus rapide sur carte ARM, plus de fichier « pdf.txt » ; **aucune migration**, aucune variable nouvelle |
+| `0.1.0-rc.43` | `019de3a6f1dea309a6924e9227b171cd3ec5c429` | `sha256:6bc98a5d4fc20e041f96c14a59a9a363e78c42cf81f54670b82fefa1715c634c` | effet studio des photos (Originale, Lumière, Fond blanc, Studio, original intact), preuve de prise de vue (date, appareil, lieu, empreinte), horodatage certifié RFC 3161 facultatif, attestation PDF pour l'assurance, photos réduites à l'envoi (2560 px), correctif d'affichage de l'Inventaire sur iPhone ; **deux migrations de base additives**, appliquées au démarrage ; trois variables facultatives |
 | `0.1.0-rc.42` | `95761d99918b243a03c3d095f7e819432829bb41` | `sha256:8e2ad37e982009d42972abd83b97bc676bad967c01480a8a27741afbe50cbc77` | réception de factures par e-mail (adresse par Espace, justificatifs à traiter), « Envoyer par e-mail » d'un document en pièce jointe, rappel « vérifiez le formulaire » près du bouton, bouton Enregistrer collé en bas sur mobile ; **une migration de base additive**, appliquée au démarrage ; deux variables facultatives |
 | `0.1.0-rc.41` | `b1e13d0620d480a3b1368595239e0e3b6bb4742f` | `sha256:007bfeb15af28319f307a8c400c5ea4aa301dd0c33636e78ba8629295c80bef6` | envoi d'e-mails par SMTP (mot de passe oublié, vérification et changement d'adresse, alertes, invitations, rappels), administration de l'instance, quota de stockage par compte et limites anti-abus, ranger un objet existant par recherche ; **deux migrations de base**, appliquées au démarrage ; variables nouvelles, toutes facultatives |
 | `0.1.0-rc.40` | `70c44bc4d201fb63c6431d2163df7f7ad4443b78` | `sha256:dac88f6298556eb829761217770b70d3746e6a560dbfd2ec8eae8dc738e8c254` | carton déballé : le garder (masqué), l'archiver ou le supprimer ; fiche du carton allégée ; « Vendu en lot avec » par recherche ; section Contenu corrigée ; **une migration de base additive**, appliquée au démarrage |
@@ -47,6 +48,18 @@
 | `0.1.0-rc.3` | `04e3028d9915b05b85df33a22f06fea818cda198` | `sha256:59a04cc39633c9edb27f367234495603ecbb1728c54173584d25c41fe4785eb4` | aperçu des documents, sorties partielles et prêts par exemplaires ; deux migrations de base |
 | `0.1.0-rc.2` | `5ca5ffc101fd89204ef533d3b9bf807b64d41a2a` | `sha256:948841a00563434e5ed1a744adb0a58c9d4227af13033b2c683344cf65ccdee8` | `BETTER_AUTH_URL` en `http://` accepté sur une adresse IPv4 privée du réseau local ([configuration.md](configuration.md#http-sur-le-réseau-local)) ; aucune migration de base |
 | `0.1.0-rc.1` | `150c5a6678c6065c04e4adfd7d426e003ed11361` | `sha256:61b4d5945735edfdeb0a65577cc40d0f3f68eda372190775095b16df0b3ef0cb` | premier candidat |
+
+## De 0.1.0-rc.43 à 0.1.0-rc.44
+
+1. **Sauvegarder d'abord** : `./scripts/backup.sh` (vérifier `storage_verify=ok` dans le
+   `MANIFEST` et les `SHA256SUMS`) ; garder aussi une copie de `.env`.
+2. `git pull` (nouvelle ligne `image:` dans `compose.yaml` et `compose.portainer-https.yaml`).
+3. `docker compose pull && docker compose up -d` — avec Portainer, « Pull and redeploy » de la
+   pile, avec *Re-pull image* (voir [portainer.md](portainer.md), § 11).
+4. Vérifier : `docker compose ps` (`healthy`), `curl http://127.0.0.1:3000/api/health` →
+   `"status":"ok"`, `"database":"up"`, puis la version en bas du menu : `v0.1.0-rc.44`.
+
+- **Aucune migration de base**, aucune variable nouvelle ; format de sauvegarde 6 inchangé.
 
 ## De 0.1.0-rc.42 à 0.1.0-rc.43
 
