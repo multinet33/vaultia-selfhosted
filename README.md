@@ -93,7 +93,7 @@ default).
 
 **7. Access from other devices (optional)**
 
-Two options:
+Three options:
 
 - **HTTPS on your home network, no domain needed (all features)**: the optional Caddy overlay of
   this repository with its own local certificate authority (`https://vaultia.home.arpa`): see
@@ -195,7 +195,7 @@ Pour utiliser la vision locale dans un Espace : *Réglages › Vaultia Vision*, 
 
 **7. Accès depuis d'autres appareils (facultatif)**
 
-Deux possibilités :
+Trois possibilités :
 
 - **HTTPS à la maison, sans domaine (toutes les fonctions)** : la surcouche Caddy facultative de
   ce dépôt, avec son autorité de certification locale (`https://vaultia.home.arpa`) : voir

@@ -13,7 +13,7 @@ Voir [installation.md § 2](installation.md#2-configurer).
 | --- | --- | --- |
 | `[config] configuration invalide : …` | valeur refusée (secret trop court, URL en http vers un nom d'hôte ou une adresse publique, `TRUSTED_PROXIES` invalide…) | corriger `.env`, `docker compose up -d` |
 | `ÉCHEC des migrations` | migration de base en échec | **ne rien forcer** ; [update.md § En cas d'échec](update.md#en-cas-déchec--limites-du-retour-arrière) |
-| `password authentication failed` | `POSTGRES_PASSWORD` changé après l'installation | remettre l'ancien mot de passe (la base garde celui de sa création) |
+| `P1000: Authentication failed against database server` ou `password authentication failed` | la base a été créée avec un autre `POSTGRES_PASSWORD` : mot de passe changé après l'installation, ou volume `postgres-data` resté d'un premier essai (supprimer une pile Portainer ou faire `docker compose down` garde les volumes ; journal de `postgres` : `Skipping initialization`) | base avec des données : remettre l'ancien mot de passe (la base garde celui de sa création). Première installation jamais utilisée : supprimer la pile **et** le volume `<pile>_postgres-data`, puis recréer ([portainer.md § 6](portainer.md#6-si-le-déploiement-échoue)) |
 
 Un problème de modèle de vision ne fait **jamais** redémarrer le conteneur.
 

@@ -31,6 +31,13 @@ Sur le serveur ou sur votre poste :
     openssl rand -hex 24         # → POSTGRES_PASSWORD
     openssl rand -base64 32      # → BETTER_AUTH_SECRET
 
+Sans terminal, le site [CrypTool-Online OpenSSL](https://www.cryptool.org/en/cto/openssl/) exécute
+les mêmes commandes : saisissez `openssl rand -hex 24`, puis `openssl rand -base64 32`, et copiez
+chaque résultat. OpenSSL y tourne dans le navigateur (WebAssembly) : les valeurs sont produites sur
+votre poste. N'utilisez pas un générateur en ligne qui ne le garantit pas.
+
+Collez la **valeur produite**, jamais le texte d'exemple `<valeur générée par …>` des modèles.
+
 | Valeur | À quoi elle sert |
 | --- | --- |
 | `POSTGRES_PASSWORD` | mot de passe de la base PostgreSQL de Vaultia. Il est fixé **à la création de la base** : le changer ensuite empêche Vaultia de s'y connecter |
@@ -176,6 +183,21 @@ Le premier déploiement prend d'une à quelques minutes, selon votre connexion.
 | `cannot assign requested address` | `VAULTIA_BIND_ADDRESS` n'est pas une adresse du serveur |
 | `address already in use` / `port is already allocated` | `VAULTIA_PORT` est déjà utilisé : choisissez-en un autre, et reportez-le dans `BETTER_AUTH_URL` |
 | `Pool overlaps with other one on this address space` | `VAULTIA_SUBNET` est déjà utilisé : choisissez un autre `/24` privé (ex. `172.30.84.0/24`) |
+| `P1000: Authentication failed against database server`, puis `ÉCHEC des migrations` (logs de `vaultia`, redémarrage en boucle) | la base a été créée avec un **autre** `POSTGRES_PASSWORD` : voir ci-dessous |
+
+**`P1000` lors d'une première installation.** PostgreSQL n'enregistre `POSTGRES_PASSWORD` qu'à la
+création de son volume. Si un premier essai a créé `vaultia_postgres-data`, puis que la pile a été
+supprimée et recréée avec un autre mot de passe, le volume **est resté** (supprimer une pile ne
+supprime pas ses volumes nommés) et la base garde l'ancien mot de passe. Le journal du conteneur
+`postgres` le confirme : `Skipping initialization` (volume réutilisé) au lieu de
+`PostgreSQL init process complete` (base neuve).
+
+- **Installation qui n'a encore jamais servi** (aucun compte créé, aucune donnée) : **Delete this
+  stack**, puis **Volumes** › supprimez `vaultia_postgres-data` (préfixe = nom de la pile ; le
+  bouton est grisé tant qu'un conteneur l'utilise), puis recréez la pile. `vaultia_models` peut
+  rester (modèles déjà téléchargés).
+- **Installation qui contient des données** : ne supprimez **jamais** le volume ; remettez dans la
+  pile le mot de passe d'origine. Voir [troubleshooting.md](troubleshooting.md#vaultia-redémarre-en-boucle).
 
 Autres cas : [troubleshooting.md](troubleshooting.md).
 
