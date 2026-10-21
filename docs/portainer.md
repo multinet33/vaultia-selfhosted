@@ -8,6 +8,34 @@ Portainer construite depuis ce dépôt. Équivalent en ligne de commande : [dock
 Dans tout ce guide, **`192.168.1.100` est un exemple** : remplacez-le par l'adresse IPv4 privée
 de **votre** serveur. Vaultia n'a aucune adresse par défaut de ce genre.
 
+## Le parcours en bref
+
+Deux décisions à prendre **avant** de commencer, le reste suit l'ordre des sections.
+
+**Décision 1 — comment ouvrir Vaultia depuis vos appareils** (fixée à la création de la pile) :
+
+| Mode | Pour qui | Compose path | Où |
+| --- | --- | --- | --- |
+| **A. HTTP sur le réseau local** | essai, usage simple à la maison ; ni certificat ni nom à créer | `compose.yaml` | ce guide, § 3 à § 9 |
+| **B. HTTPS local avec Caddy** | toutes les fonctions (mode hors ligne, caméra du scanner) sans domaine ; un certificat racine à approuver sur chaque appareil | `compose.portainer-https.yaml` | § 13.1 |
+| **C. HTTPS derrière votre reverse proxy ou domaine** | vous avez déjà nginx, Traefik, Nginx Proxy Manager, Cloudflare Tunnel… | `compose.yaml` | [reverse-proxy.md](reverse-proxy.md) |
+
+En cas de doute : **A**, puis passage en B plus tard sans perte de données (§ 13.2).
+
+**Décision 2 — les options** (chacune peut aussi s'ajouter plus tard, § 4.5) : recherche Web de codes
+produit (SearXNG ou Brave), envoi d'e-mails, horodatage certifié, mises à jour automatiques.
+
+**Étapes :**
+
+1. Vérifier les prérequis (§ 1).
+2. Générer les deux secrets (§ 2), et ceux des options choisies.
+3. Créer la pile avec le bon *Compose path* (§ 3).
+4. Saisir les variables : socle (§ 4), puis options (§ 4.5).
+5. Déployer (§ 5) ; en cas d'erreur, § 6.
+6. Vérifier dans Portainer (§ 7).
+7. Ouvrir Vaultia et créer le premier compte (§ 8).
+8. Mettre en place la sauvegarde (§ 12) **avant** d'y mettre des données qui comptent.
+
 ## 1. Prérequis
 
 | Besoin | Détail |
@@ -117,6 +145,73 @@ Ces guides utilisent **6080**. N'importe quel port libre fonctionne pour Docker,
 navigateurs refusent certains ports réservés à d'autres protocoles. C'est le cas de **6000** :
 Docker le publie sans erreur, mais Chrome, Edge et les autres navigateurs Chromium affichent
 `ERR_UNSAFE_PORT` et n'ouvrent pas la page. N'utilisez pas 6000 pour Vaultia.
+
+### 4.5 Options facultatives
+
+Chaque option s'ajoute **en plus** des variables ci-dessus, dans la même liste de la pile. Vous
+pouvez aussi l'ajouter plus tard : pile › **Editor** › variables › **Update the stack**. Les
+volumes et les données sont conservés ; ne touchez pas aux secrets existants.
+
+> **Recherche Web de codes produit avec SearXNG (recommandé)**
+>
+> Quand un code-barres est inconnu des bases produit ouvertes, Vaultia cherche la fiche sur le
+> Web via un SearXNG privé, démarré **dans la pile** (aucun port publié, joignable seulement par
+> Vaultia). Sans ces variables, le conteneur `searxng` n'est **pas créé** : c'est normal, il fait
+> partie du profil facultatif `web-search`.
+>
+>     INTELLIGENCE_PROVIDERS=zxing-barcode,tesseract-ocr,siglip2-vision,e5-embeddings,document-rules,open-facts,web-product-search
+>     COMPOSE_PROFILES=web-search
+>     SEARXNG_SECRET=<valeur générée par openssl rand -hex 32>
+>     WEB_PRODUCT_SEARCH_BACKEND=searxng
+>     WEB_PRODUCT_SEARCH_URL=http://172.30.83.11:8080
+>
+> - Les **cinq** lignes sont nécessaires : `COMPOSE_PROFILES` crée le conteneur, `SEARXNG_SECRET`
+>   l'autorise à démarrer (sans lui il s'arrête aussitôt ; Vaultia continue de fonctionner),
+>   `INTELLIGENCE_PROVIDERS` installe le moteur (liste par défaut **+** `web-product-search`),
+>   `WEB_PRODUCT_SEARCH_*` y branche Vaultia.
+> - `172.30.83.11` appartient à `VAULTIA_SUBNET=172.30.83.0/24`. Autre sous-réseau : choisissez une
+>   adresse libre de celui-ci dans `SEARXNG_IPV4_ADDRESS` et reportez-la dans
+>   `WEB_PRODUCT_SEARCH_URL`.
+> - Vérification : **Containers** › `vaultia-searxng-1` *healthy* ; dans Vaultia, *Réglages ›
+>   Vaultia Vision* › « Données produit » « Prête » pour un Espace en mode externe.
+> - La recherche interroge Internet (moteurs de SearXNG). Détail, limites, désactivation :
+>   [web-product-search.md](web-product-search.md).
+
+**…ou avec Brave Search** (pas de conteneur en plus, clé d'API Brave nécessaire) :
+
+    INTELLIGENCE_PROVIDERS=zxing-barcode,tesseract-ocr,siglip2-vision,e5-embeddings,document-rules,open-facts,web-product-search
+    WEB_PRODUCT_SEARCH_BACKEND=brave
+    WEB_PRODUCT_SEARCH_API_KEY=<votre clé Brave Search>
+
+Pas de `COMPOSE_PROFILES` dans ce cas. Clé absente ou invalide : Vaultia refuse de démarrer.
+
+**Envoi d'e-mails (SMTP)** : mot de passe oublié, vérification et changement d'adresse, alertes de
+sécurité, invitations, rappels d'échéances. Sans `SMTP_HOST`, aucun e-mail n'est envoyé (le reste fonctionne).
+
+    SMTP_HOST=smtp.example.com
+    SMTP_PORT=587
+    SMTP_USER=<identifiant SMTP>
+    SMTP_PASSWORD=<mot de passe SMTP ou mot de passe d'application>
+    SMTP_FROM=Vaultia <vaultia@example.com>
+
+- `SMTP_PORT=587` : STARTTLS ; `465` : TLS implicite (`SMTP_TLS` se déduit du port).
+- `SMTP_FROM` est obligatoire dès que `SMTP_HOST` est défini (`adresse@domaine` ou
+  `Nom <adresse@domaine>`).
+- `VAULTIA_REQUIRE_VERIFIED_EMAIL=true` (facultatif) : un compte doit confirmer son adresse avant
+  de se connecter (refusé sans `SMTP_HOST`). Ne l'activez qu'une fois l'envoi vérifié.
+
+**Horodatage certifié des fichiers (RFC 3161)** : une autorité tierce date les fichiers des objets
+et les attestations pour l'assurance (preuve en cas de sinistre ou de litige). Seule l'empreinte
+SHA-256 est envoyée, jamais le fichier. Vide : désactivé, aucun appel réseau.
+
+    TIMESTAMP_TSA_URL=https://freetsa.org/tsr
+
+**Mises à jour automatiques** (Watchtower) : déconseillées pour commencer ; voir § 11.
+
+**HTTPS** : ce n'est pas une option à ajouter ici mais un autre *Compose path* (décision 1, § 13).
+
+Les autres variables (instance hébergée pour d'autres personnes, webhooks, réception de factures
+par e-mail, eBay…) : [configuration.md](configuration.md).
 
 ### Référence : toutes les variables de la distribution
 
